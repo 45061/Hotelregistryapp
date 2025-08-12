@@ -28,7 +28,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
     const body = await req.json();
-    const updatedTraveler = await (Traveler as any).findByIdAndUpdate(id, body, { new: true, runValidators: true });
+
+    // Exclude date and arrivalTime from the update operation
+    const { date, arrivalTime, ...updateData } = body;
+
+    const updatedTraveler = await (Traveler as any).findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
 
     if (!updatedTraveler) {
       return NextResponse.json({ success: false, error: 'Traveler not found' }, { status: 404 });
