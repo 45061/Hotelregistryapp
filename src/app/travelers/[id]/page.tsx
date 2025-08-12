@@ -178,6 +178,21 @@ export default function TravelerDetailsPage() {
                   </div>
                 );
               }
+              if (key === "user") {
+                return (
+                  <div
+                    key={key}
+                    className="bg-gray-50 p-4 rounded-md border border-gray-200"
+                  >
+                    <p className="text-sm font-medium text-gray-600 capitalize mb-1">
+                      {labelTranslations[key as keyof TravelerRecord] || key.replace(/([A-Z])/g, " $1")}:
+                    </p>
+                    <p className="text-gray-900 font-semibold text-lg">
+                      {(value as any).name || "N/A"}
+                    </p>
+                  </div>
+                );
+              }
               return (
                 <div
                   key={key}

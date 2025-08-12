@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { id } = params;
 
   try {
-    const traveler = await (Traveler as any).findById(id).populate('companions');
+    const traveler = await (Traveler as any).findById(id).populate('companions').populate('user', 'firstName lastName');
 
     if (!traveler) {
       return NextResponse.json({ success: false, error: 'Traveler not found' }, { status: 404 });
