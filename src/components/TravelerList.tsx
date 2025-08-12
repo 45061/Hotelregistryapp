@@ -22,6 +22,10 @@ interface Traveler {
   breakfast: boolean;
   amountPaid: number;
   paymentMethod: string;
+  user: {
+    _id: string;
+    name: string;
+  };
 }
 
 const allTableFields: (keyof Traveler | "actions")[] = [
@@ -41,6 +45,7 @@ const allTableFields: (keyof Traveler | "actions")[] = [
   "breakfast",
   "amountPaid",
   "paymentMethod",
+  "user",
   "actions",
 ];
 
@@ -63,6 +68,7 @@ const fieldLabels: Record<keyof TravelerDisplayFields, string> = {
   breakfast: "Desayuno",
   amountPaid: "Monto Pagado",
   paymentMethod: "Método de Pago",
+  user: "Usuario",
   actions: "Acciones",
 };
 
@@ -91,6 +97,9 @@ const getFieldValue = (record: Traveler, field: keyof Traveler) => {
   }
   if (typeof record[field] === "boolean") {
     return record[field] ? "Yes" : "No";
+  }
+  if (field === "user") {
+    return record.user ? record.user.name : "N/A";
   }
 
   return record[field];

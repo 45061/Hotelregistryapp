@@ -79,7 +79,7 @@ export default function TravelerDetailsPage() {
       }
     };
     fetchUser();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!loadingUser && user && user.authorized && id) {

@@ -199,7 +199,7 @@ export default function HomePage() {
       }
     };
     fetchUser();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!loadingUser && user && user.authorized) {
@@ -277,6 +277,7 @@ export default function HomePage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include',
         body: JSON.stringify(dataToSend),
       });
 

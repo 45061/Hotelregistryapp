@@ -19,6 +19,11 @@ const travelerSchema = new Schema({
     amountPaid: { type: Number, required: true },
     paymentMethod: { type: String, required: true },
     companions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Companion' }],
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    }
 }, { timestamps: true });
 
 const TravelerRecord = models.TravelerRecord || mongoose.model("TravelerRecord", travelerSchema);

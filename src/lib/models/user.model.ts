@@ -53,6 +53,13 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+userSchema.virtual('name').get(function() {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
+
 const User = models.User || mongoose.model("User", userSchema);
 
 export default User;
