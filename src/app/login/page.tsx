@@ -6,18 +6,18 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AtamsaLogo from '@/components/AtamsaLogo';
 
+import toast from 'react-hot-toast';
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     if (!email || !password) {
-      setError('Email and password are required.');
+      toast.error('Email and password are required.');
       return;
     }
 
@@ -34,10 +34,10 @@ export default function LoginPage() {
         router.push('/');
       } else {
         const data = await res.json();
-        setError(data.error || 'Something went wrong.');
+        toast.error(data.error || 'Something went wrong.');
       }
     } catch (error) {
-      setError('Something went wrong.');
+      toast.error('Something went wrong.');
     }
   };
 
@@ -80,7 +80,6 @@ export default function LoginPage() {
               className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-verde-principal focus:border-verde-principal"
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
           <div>
             <button
               type="submit"

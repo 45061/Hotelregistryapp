@@ -29,7 +29,7 @@ export async function POST(req) {
       );
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin, authorized: user.authorized, isSuperUser: user.isSuperUser }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 

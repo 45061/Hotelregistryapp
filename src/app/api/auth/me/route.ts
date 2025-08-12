@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     }
 
     const token = tokenCookie.value;
-    const decoded = jwt.verify(token, SECRET);
+    const decoded = jwt.verify(token, SECRET) as { id: string, isAdmin: boolean, authorized: boolean, isSuperUser: boolean };
 
     if (!decoded || !decoded.id) {
       return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: user });
+    return NextResponse.json({ success: true, data: { id: user._id, isAdmin: decoded.isAdmin, authorized: decoded.authorized, isSuperUser: decoded.isSuperUser } });
   } catch (error) {
     console.error('Error fetching user details:', error);
     // If token is expired or invalid, jwt.verify will throw an error
