@@ -1,58 +1,60 @@
+"use client";
 
-'use client';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import AtamsaLogo from "@/components/AtamsaLogo";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import AtamsaLogo from '@/components/AtamsaLogo';
-
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.error('Email and password are required.');
+      toast.error("Email and password are required.");
       return;
     }
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
 
       if (res.ok) {
-        router.push('/');
+        router.push("/");
       } else {
         const data = await res.json();
-        toast.error(data.error || 'Something went wrong.');
+        toast.error(data.error || "Something went wrong.");
       }
     } catch (error) {
-      toast.error('Something went wrong.');
+      toast.error("Something went wrong.");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        
-
         <div className="flex justify-center">
           <AtamsaLogo />
         </div>
-        <h1 className="font-heading text-3xl font-bold text-center text-gray-900">ATAMSA Login</h1>
+        <h1 className="font-heading text-3xl font-bold text-center text-gray-900">
+          Registro Viajero Login
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="text-sm font-medium text-gray-700"
+            >
               Email
             </label>
             <input
@@ -90,8 +92,11 @@ export default function LoginPage() {
           </div>
         </form>
         <p className="mt-4 text-sm text-center text-gray-600">
-          Don't have an account?{' '}
-          <Link href="/register" className="font-medium text-verde-principal hover:text-opacity-80">
+          Don't have an account?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-verde-principal hover:text-opacity-80"
+          >
             Register
           </Link>
         </p>

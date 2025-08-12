@@ -27,6 +27,27 @@ interface TravelerRecord {
   companions?: any[]; // Assuming companions will be populated
 }
 
+const labelTranslations: Record<keyof TravelerRecord, string> = {
+  _id: "ID",
+  roomNumber: "Número de Habitación",
+  date: "Fecha",
+  name: "Nombre",
+  nationality: "Nacionalidad",
+  headquarters: "Sede",
+  origin: "Origen",
+  reservedNights: "Noches Reservadas",
+  reservationLocation: "Ubicación de Reserva",
+  arrivalTime: "Hora de Llegada",
+  destination: "Destino",
+  idType: "Tipo de ID",
+  idNumber: "Número de ID",
+  expeditionPlace: "Lugar de Expedición",
+  breakfast: "Desayuno",
+  amountPaid: "Monto Pagado",
+  paymentMethod: "Método de Pago",
+  companions: "Acompañantes",
+};
+
 export default function TravelerDetailsPage() {
   const params = useParams();
   const { id } = params;
@@ -69,10 +90,10 @@ export default function TravelerDetailsPage() {
           if (data.success) {
             setTraveler(data.data);
           } else {
-            toast.error(data.error || "Failed to fetch traveler details.");
+            toast.error(data.error || "Error al cargar los detalles del viajero.");
           }
         } catch (error) {
-          toast.error("An error occurred while fetching traveler details.");
+          toast.error("Ocurrió un error al cargar los detalles del viajero.");
         } finally {
           setLoading(false);
         }
@@ -89,17 +110,17 @@ export default function TravelerDetailsPage() {
       if (res.ok) {
         router.push("/unauthorized");
       } else {
-        toast.error("Failed to logout.");
+        toast.error("Error al cerrar sesión.");
       }
     } catch (error) {
-      toast.error("An error occurred during logout.");
+      toast.error("Ocurrió un error durante el cierre de sesión.");
     }
   };
 
   if (loadingUser || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        Cargando...
       </div>
     );
   }
@@ -111,7 +132,7 @@ export default function TravelerDetailsPage() {
   if (!traveler) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Traveler not found.
+        Viajero no encontrado.
       </div>
     );
   }
@@ -123,7 +144,7 @@ export default function TravelerDetailsPage() {
       <main className="p-8">
         <div className="p-6 bg-white rounded-lg shadow-md border border-gray-200">
           <h2 className="mb-6 text-3xl font-heading text-verde-principal text-center">
-            Traveler Information
+            Información del Viajero
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Object.entries(traveler).map(([key, value]) => {
@@ -141,7 +162,7 @@ export default function TravelerDetailsPage() {
                     className="col-span-full mt-4 p-4 bg-gray-50 rounded-md border border-gray-200"
                   >
                     <h3 className="text-xl font-heading text-verde-principal mb-3">
-                      Companions:
+                      Acompañantes:
                     </h3>
                     {value.length > 0 ? (
                       <ul className="list-disc list-inside space-y-1">
@@ -152,7 +173,7 @@ export default function TravelerDetailsPage() {
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-gray-800">No companions registered.</p>
+                      <p className="text-gray-800">No hay acompañantes registrados.</p>
                     )}
                   </div>
                 );
@@ -163,12 +184,12 @@ export default function TravelerDetailsPage() {
                   className="bg-gray-50 p-4 rounded-md border border-gray-200"
                 >
                   <p className="text-sm font-medium text-gray-600 capitalize mb-1">
-                    {key.replace(/([A-Z])/g, " $1")}:
+                    {labelTranslations[key as keyof TravelerRecord] || key.replace(/([A-Z])/g, " $1")}:
                   </p>
                   <p className="text-gray-900 font-semibold text-lg">
                     {typeof value === "boolean"
                       ? value
-                        ? "Yes"
+                        ? "Sí"
                         : "No"
                       : value}
                   </p>

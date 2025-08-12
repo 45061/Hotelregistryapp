@@ -38,27 +38,27 @@ const fieldLabels: Record<
   keyof Omit<TravelerRecord, "date" | "arrivalTime" | "_id" | "companions">,
   string
 > = {
-  roomNumber: "Room No.",
-  name: "Name",
-  nationality: "Nationality",
-  origin: "Origin",
-  reservedNights: "Reserved Nights",
-  reservationLocation: "Reservation Location",
-  destination: "Destination",
-  idType: "ID Type",
-  idNumber: "ID Number",
-  expeditionPlace: "Place of Expedition",
-  breakfast: "Breakfast",
-  amountPaid: "Amount Paid",
-  paymentMethod: "Payment Method",
+  roomNumber: "Número de Habitación",
+  name: "Nombre",
+  nationality: "Nacionalidad",
+  origin: "Origen",
+  reservedNights: "Noches Reservadas",
+  reservationLocation: "Ubicación de Reserva",
+  destination: "Destino",
+  idType: "Tipo de ID",
+  idNumber: "Número de ID",
+  expeditionPlace: "Lugar de Expedición",
+  breakfast: "Desayuno",
+  amountPaid: "Monto Pagado",
+  paymentMethod: "Método de Pago",
 };
 
 const companionFieldLabels = {
-  mainTravelerId: "Main Traveler ID",
-  name: "Name",
-  idNumber: "ID Number",
-  idType: "ID Type",
-  expeditionPlace: "Place of Expedition",
+  mainTravelerId: "ID de Viajero Principal",
+  name: "Nombre",
+  idNumber: "Número de ID",
+  idType: "Tipo de ID",
+  expeditionPlace: "Lugar de Expedición",
 };
 
 const allTableFields: (keyof TravelerRecord)[] = [
@@ -455,13 +455,13 @@ export default function HomePage() {
       <Navbar user={user} onLogout={handleLogout} />
       <div className="container mx-auto p-4">
         <div className="flex justify-center mb-8">
-          <AtamsaLogo />
+          <AtamsaLogo isLarge={true} />
         </div>
 
         {/* Traveler Registration Form */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            Traveler Registration
+            Registro de Viajero
           </h2>
           <form
             onSubmit={handleSubmit}
@@ -575,13 +575,13 @@ export default function HomePage() {
                 onClick={handleClear}
                 className="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors duration-200"
               >
-                Clear
+                Limpiar
               </button>
               <button
                 type="submit"
                 className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200"
               >
-                {editingId ? "Update Traveler" : "Register Traveler"}
+                {editingId ? "Actualizar Viajero" : "Registrar Viajero"}
               </button>
             </div>
           </form>
@@ -590,23 +590,23 @@ export default function HomePage() {
         {/* Companion Registration Form */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            Companion Registration
+            Registro de Acompañante
           </h2>
           <div className="flex items-end space-x-4 mb-4">
             <div className="flex-grow">
               <FormField
-                label="Search Traveler by ID"
+                label="Buscar Viajero por ID"
                 name="searchId"
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}
-                placeholder="Enter Traveler ID Number"
+                placeholder="Ingresar Número de ID de Viajero"
               />
             </div>
             <button
               onClick={handleSearch}
               className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200"
             >
-              Search
+              Buscar
             </button>
           </div>
           <form
@@ -656,13 +656,17 @@ export default function HomePage() {
                 type="submit"
                 className="px-6 py-2 bg-amarillo text-gray-900 rounded-md hover:bg-opacity-90 transition-colors duration-200 font-semibold"
               >
-                Add Companion
+                Añadir Acompañante
               </button>
             </div>
           </form>
         </div>
 
-        <TravelerList refreshTrigger={refreshList} onEdit={handleEdit} />
+        <TravelerList
+          refreshTrigger={refreshList}
+          onEdit={handleEdit}
+          isAdmin={user?.isAdmin}
+        />
       </div>
     </div>
   );

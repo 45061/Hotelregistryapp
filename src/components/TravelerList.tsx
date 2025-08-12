@@ -47,23 +47,23 @@ const allTableFields: (keyof Traveler | "actions")[] = [
 type TravelerDisplayFields = Omit<Traveler, "_id">;
 
 const fieldLabels: Record<keyof TravelerDisplayFields, string> = {
-  roomNumber: "Room No.",
-  date: "Date",
-  name: "Name",
-  nationality: "Nationality",
-  headquarters: "Headquarters",
-  origin: "Origin",
-  reservedNights: "Reserved Nights",
-  reservationLocation: "Reservation Location",
-  arrivalTime: "Arrival Time",
-  destination: "Destination",
-  idType: "ID Type",
-  idNumber: "ID Number",
-  expeditionPlace: "Place of Expedition",
-  breakfast: "Breakfast",
-  amountPaid: "Amount Paid",
-  paymentMethod: "Payment Method",
-  actions: "Actions",
+  roomNumber: "Número de Habitación",
+  date: "Fecha",
+  name: "Nombre",
+  nationality: "Nacionalidad",
+  headquarters: "Sede",
+  origin: "Origen",
+  reservedNights: "Noches Reservadas",
+  reservationLocation: "Ubicación de Reserva",
+  arrivalTime: "Hora de Llegada",
+  destination: "Destino",
+  idType: "Tipo de ID",
+  idNumber: "Número de ID",
+  expeditionPlace: "Lugar de Expedición",
+  breakfast: "Desayuno",
+  amountPaid: "Monto Pagado",
+  paymentMethod: "Método de Pago",
+  actions: "Acciones",
 };
 
 const getFieldValue = (record: Traveler, field: keyof Traveler) => {
@@ -99,11 +99,13 @@ const getFieldValue = (record: Traveler, field: keyof Traveler) => {
 interface TravelerListProps {
   refreshTrigger: number;
   onEdit: (traveler: Traveler) => void;
+  isAdmin: boolean;
 }
 
 const TravelerList: React.FC<TravelerListProps> = ({
   refreshTrigger,
   onEdit,
+  isAdmin,
 }) => {
   const [travelers, setTravelers] = useState<Traveler[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -162,7 +164,7 @@ const TravelerList: React.FC<TravelerListProps> = ({
           });
           setTravelers(sortedRecords);
         } else {
-          setError(data.error || "Failed to fetch travelers");
+          setError(data.error || "Error al cargar viajeros");
         }
       } catch (err: any) {
         setError(err.message);
@@ -195,7 +197,7 @@ const TravelerList: React.FC<TravelerListProps> = ({
     <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Lista de Viajeros</h1>
-        {travelers.length > 0 && (
+        {travelers.length > 0 && isAdmin && (
           <button
             onClick={handleDownloadCSV}
             className="px-4 py-2  bg-verde-principal text-white rounded-md hover:bg-green-700 text-sm"
@@ -241,7 +243,7 @@ const TravelerList: React.FC<TravelerListProps> = ({
                                 onClick={() => onEdit(traveler)}
                                 className="px-3 py-1 bg-verde-principal text-white rounded-md hover:bg-opacity-90 text-xs"
                               >
-                                Edit
+                                Editar
                               </button>
 
                               <Link
@@ -249,7 +251,7 @@ const TravelerList: React.FC<TravelerListProps> = ({
                                 className="px-3 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-xs"
                                 prefetch={false}
                               >
-                                View
+                                Ver
                               </Link>
                             </div>
                           ) : (
