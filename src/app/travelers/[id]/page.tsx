@@ -1,11 +1,10 @@
+"use client";
 
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
-import AtamsaLogo from '@/components/AtamsaLogo';
-import Navbar from '@/components/Navbar';
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import AtamsaLogo from "@/components/AtamsaLogo";
+import Navbar from "@/components/Navbar";
 
 interface TravelerRecord {
   _id: string;
@@ -40,20 +39,20 @@ export default function TravelerDetailsPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('/api/auth/me');
+        const res = await fetch("/api/auth/me");
         if (res.ok) {
           const userData = await res.json();
           setUser(userData.data);
           if (!userData.data.authorized) {
-            router.push('/unauthorized');
+            router.push("/unauthorized");
           }
         } else if (res.status === 401) {
-          router.push('/login');
+          router.push("/login");
         } else {
-          router.push('/unauthorized'); // Fallback for other non-2xx statuses
+          router.push("/unauthorized"); // Fallback for other non-2xx statuses
         }
       } catch (error) {
-        router.push('/login');
+        router.push("/login");
       } finally {
         setLoadingUser(false);
       }
@@ -70,10 +69,10 @@ export default function TravelerDetailsPage() {
           if (data.success) {
             setTraveler(data.data);
           } else {
-            toast.error(data.error || 'Failed to fetch traveler details.');
+            toast.error(data.error || "Failed to fetch traveler details.");
           }
         } catch (error) {
-          toast.error('An error occurred while fetching traveler details.');
+          toast.error("An error occurred while fetching traveler details.");
         } finally {
           setLoading(false);
         }
@@ -84,21 +83,25 @@ export default function TravelerDetailsPage() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch('/api/auth/logout', {
-        method: 'POST',
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
       });
       if (res.ok) {
-        router.push('/unauthorized');
+        router.push("/unauthorized");
       } else {
-        toast.error('Failed to logout.');
+        toast.error("Failed to logout.");
       }
     } catch (error) {
-      toast.error('An error occurred during logout.');
+      toast.error("An error occurred during logout.");
     }
   };
 
   if (loadingUser || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   if (!user || !user.authorized) {
@@ -106,42 +109,68 @@ export default function TravelerDetailsPage() {
   }
 
   if (!traveler) {
-    return <div className="min-h-screen flex items-center justify-center">Traveler not found.</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Traveler not found.
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100 font-sans">
       <Navbar user={user} onLogout={handleLogout} />
 
       <main className="p-8">
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h2 className="mb-4 text-xl font-bold text-gray-800 font-heading">Traveler Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="p-6 bg-white rounded-lg shadow-md border border-gray-200">
+          <h2 className="mb-6 text-3xl font-heading text-verde-principal text-center">
+            Traveler Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Object.entries(traveler).map(([key, value]) => {
-              if (key === '_id' || key === '__v' || key === 'createdAt' || key === 'updatedAt') return null;
-              if (key === 'companions') {
+              if (
+                key === "_id" ||
+                key === "__v" ||
+                key === "createdAt" ||
+                key === "updatedAt"
+              )
+                return null;
+              if (key === "companions") {
                 return (
-                  <div key={key} className="col-span-full">
-                    <h3 className="text-lg font-semibold mt-4 mb-2">Companions:</h3>
+                  <div
+                    key={key}
+                    className="col-span-full mt-4 p-4 bg-gray-50 rounded-md border border-gray-200"
+                  >
+                    <h3 className="text-xl font-heading text-verde-principal mb-3">
+                      Companions:
+                    </h3>
                     {value.length > 0 ? (
-                      <ul className="list-disc list-inside">
+                      <ul className="list-disc list-inside space-y-1">
                         {value.map((companion: any) => (
-                          <li key={companion._id} className="text-gray-700">
+                          <li key={companion._id} className="text-gray-800">
                             {companion.name} (ID: {companion.idNumber})
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-gray-700">No companions registered.</p>
+                      <p className="text-gray-800">No companions registered.</p>
                     )}
                   </div>
                 );
               }
               return (
-                <div key={key}>
-                  <p className="text-sm font-medium text-gray-500 capitalize">{key.replace(/([A-Z])/g, ' $1')}:</p>
-                  <p className="text-gray-900 font-semibold">
-                    {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value}
+                <div
+                  key={key}
+                  className="bg-gray-50 p-4 rounded-md border border-gray-200"
+                >
+                  <p className="text-sm font-medium text-gray-600 capitalize mb-1">
+                    {key.replace(/([A-Z])/g, " $1")}:
+                  </p>
+                  <p className="text-gray-900 font-semibold text-lg">
+                    {typeof value === "boolean"
+                      ? value
+                        ? "Yes"
+                        : "No"
+                      : value}
                   </p>
                 </div>
               );

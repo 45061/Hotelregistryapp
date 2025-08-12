@@ -285,8 +285,15 @@ export default function HomePage() {
         toast.success(
           `Record ${editingId ? "updated" : "saved"} successfully!`
         );
-        setRefreshList(prev => prev + 1);
+        setRefreshList((prev) => prev + 1);
         handleClear();
+        // If a new traveler was saved, populate their ID into the companion form
+        if (!editingId && savedRecord.data && savedRecord.data._id) {
+          setCompanionForm((prev) => ({
+            ...prev,
+            mainTravelerId: savedRecord.data._id,
+          }));
+        }
       } else {
         toast.error("Failed to save record.");
       }
@@ -597,7 +604,7 @@ export default function HomePage() {
             </div>
             <button
               onClick={handleSearch}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+              className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200"
             >
               Search
             </button>
@@ -647,7 +654,7 @@ export default function HomePage() {
             <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-4">
               <button
                 type="submit"
-                className="px-6 py-2 bg-yellow-500 text-gray-800 rounded-md hover:bg-yellow-600 transition-colors duration-200"
+                className="px-6 py-2 bg-amarillo text-gray-900 rounded-md hover:bg-opacity-90 transition-colors duration-200 font-semibold"
               >
                 Add Companion
               </button>
