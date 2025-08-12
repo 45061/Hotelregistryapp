@@ -18,3 +18,17 @@ declare interface TravelerRecord {
   paymentMethod: string;
   companions?: { name: string; idNumber: string; idType: string; expeditionPlace: string }[];
 }
+
+declare interface User {
+  _id?: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  password?: string; // Optional as it's not always returned
+  isAdmin: boolean;
+  isSuperUser: boolean;
+  authorized: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
