@@ -51,7 +51,7 @@ const allTableFields: (keyof Traveler | "actions")[] = [
 
 type TravelerDisplayFields = Omit<Traveler, "_id">;
 
-const fieldLabels: Record<keyof TravelerDisplayFields, string> = {
+const fieldLabels: Record<keyof TravelerDisplayFields | "actions", string> = {
   roomNumber: "Número de Habitación",
   date: "Fecha",
   name: "Nombre",
