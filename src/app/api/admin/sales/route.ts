@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       salesFilter.headquarters = headquarters;
     }
 
-    const salesData = await TravelerRecord.find(salesFilter);
+    const salesData = await TravelerRecord.find(salesFilter).populate('companions');
 
     const totalIncome = salesData.reduce((acc, traveler) => acc + traveler.amountPaid, 0);
 
@@ -61,10 +61,23 @@ export async function GET(req: NextRequest) {
       return acc;
     }, {} as Record<string, number>);
 
+    const mainTravelersByIdType = {};
+    const companionsByIdType = {};
+
     salesData.forEach(traveler => {
-      const { roomNumber, amountPaid } = traveler;
+      const { roomNumber, amountPaid, idType, companions } = traveler;
       if (incomeByRoom.hasOwnProperty(roomNumber)) {
         incomeByRoom[roomNumber] += amountPaid;
+      }
+
+      // Count traveler
+      mainTravelersByIdType[idType] = (mainTravelersByIdType[idType] || 0) + 1;
+
+      // Count companions
+      if (companions && companions.length > 0) {
+        companions.forEach(companion => {
+          companionsByIdType[companion.idType] = (companionsByIdType[companion.idType] || 0) + 1;
+        });
       }
     });
 
@@ -73,6 +86,8 @@ export async function GET(req: NextRequest) {
       data: {
         totalIncome,
         incomeByRoom,
+        mainTravelersByIdType,
+        companionsByIdType,
         salesData,
       },
     });

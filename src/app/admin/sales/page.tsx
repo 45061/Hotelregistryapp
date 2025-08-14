@@ -29,6 +29,8 @@ ChartJS.register(
 interface SalesData {
   totalIncome: number;
   incomeByRoom: Record<string, number>;
+  mainTravelersByIdType: Record<string, number>;
+  companionsByIdType: Record<string, number>;
 }
 
 export default function SalesReportPage() {
@@ -128,6 +130,32 @@ export default function SalesReportPage() {
     ],
   };
 
+  const mainTravelersChartData = {
+    labels: salesData ? Object.keys(salesData.mainTravelersByIdType) : [],
+    datasets: [
+      {
+        label: 'Viajeros Principales por Tipo de ID',
+        data: salesData ? Object.values(salesData.mainTravelersByIdType) : [],
+        backgroundColor: 'rgba(255, 230, 0, 0.6)',
+        borderColor: '#FFE600',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const companionsChartData = {
+    labels: salesData ? Object.keys(salesData.companionsByIdType) : [],
+    datasets: [
+      {
+        label: 'Acompañantes por Tipo de ID',
+        data: salesData ? Object.values(salesData.companionsByIdType) : [],
+        backgroundColor: 'rgba(42, 157, 143, 0.6)',
+        borderColor: '#2a9d8f',
+        borderWidth: 1,
+      },
+    ],
+  };
+
   if (loadingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -191,7 +219,7 @@ export default function SalesReportPage() {
             <div className="bg-white p-6 rounded-lg shadow-md mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Ingresos Totales: ${salesData.totalIncome.toFixed(2)}</h2>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Ingresos por Habitación (Barras)</h3>
                 <Bar data={barChartData} />
@@ -199,6 +227,16 @@ export default function SalesReportPage() {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Ingresos por Habitación (Circular)</h3>
                 <Pie data={pieChartData} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Viajeros Principales por Tipo de ID</h3>
+                <Bar data={mainTravelersChartData} />
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Acompañantes por Tipo de ID</h3>
+                <Bar data={companionsChartData} />
               </div>
             </div>
           </div>
