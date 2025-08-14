@@ -4,16 +4,11 @@ import dbConnect from '@/lib/db';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { ICompanion } from '@/lib/models/companion.model';
-import { Document, ObjectId } from 'mongoose';
 
 const roomsByHeadquarters = {
   "Natural Sevgi": ["201", "202", "203", "204", "301", "302", "303", "304", "401", "402", "403", "404"],
   "Oporto 83": ["221", "222", "223", "224", "225", "321", "322", "323", "324", "325", "421", "423", "424"],
 };
-
-interface IPopulatedTraveler extends Omit<ITraveler, 'companions'> {
-  companions: ICompanion[];
-}
 
 export async function GET(req: NextRequest) {
   const cookieStore = cookies();
@@ -59,7 +54,7 @@ export async function GET(req: NextRequest) {
     }
 
     const salesDataQuery = TravelerRecord.find(salesFilter);
-    const salesData: IPopulatedTraveler[] = await salesDataQuery.populate('companions');
+    const salesData: ITraveler<ICompanion>[] = await salesDataQuery.populate('companions');
 
     const totalIncome = salesData.reduce((acc, traveler) => acc + traveler.amountPaid, 0);
 
@@ -103,6 +98,6 @@ export async function GET(req: NextRequest) {
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
     }
-    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Server error' }, { status = 500 });
   }
 }

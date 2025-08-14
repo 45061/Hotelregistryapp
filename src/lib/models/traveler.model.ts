@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, models, Model } from 'mongoose';
 
-export interface ITraveler extends Document {
+export interface ITraveler<T = mongoose.Types.ObjectId> extends Document {
     roomNumber: string;
     date: Date;
     name: string;
@@ -17,7 +17,7 @@ export interface ITraveler extends Document {
     breakfast: boolean;
     amountPaid: number;
     paymentMethod: string;
-    companions: mongoose.Types.ObjectId[];
+    companions: T[]; // Now it's a generic type
     user: mongoose.Types.ObjectId;
 }
 
