@@ -3,11 +3,38 @@ import TravelerRecord from '@/lib/models/traveler.model';
 import dbConnect from '@/lib/db';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { ICompanion } from '@/lib/models/companion.model';
+import { Document, ObjectId } from 'mongoose';
 
 const roomsByHeadquarters = {
   "Natural Sevgi": ["201", "202", "203", "204", "301", "302", "303", "304", "401", "402", "403", "404"],
   "Oporto 83": ["221", "222", "223", "224", "225", "321", "322", "323", "324", "325", "421", "423", "424"],
 };
+
+interface ITraveler extends Document {
+    roomNumber: string;
+    date: Date;
+    name: string;
+    nationality: string;
+    headquarters: string;
+    origin: string;
+    reservedNights: number;
+    reservationLocation: string;
+    arrivalTime: string;
+    destination: string;
+    idType: string;
+    idNumber: string;
+    expeditionPlace: string;
+    breakfast: boolean;
+    amountPaid: number;
+    paymentMethod: string;
+    companions: ObjectId[];
+    user: ObjectId;
+}
+
+interface IPopulatedTraveler extends Omit<ITraveler, 'companions'> {
+  companions: ICompanion[];
+}
 
 export async function GET(req: NextRequest) {
   const cookieStore = cookies();
@@ -52,8 +79,8 @@ export async function GET(req: NextRequest) {
       salesFilter.headquarters = headquarters;
     }
 
-        const salesDataQuery = TravelerRecord.find(salesFilter);
-    const salesData = await salesDataQuery.populate('companions');
+    const salesDataQuery = TravelerRecord.find(salesFilter);
+    const salesData: IPopulatedTraveler[] = await salesDataQuery.populate('companions');
 
     const totalIncome = salesData.reduce((acc, traveler) => acc + traveler.amountPaid, 0);
 
