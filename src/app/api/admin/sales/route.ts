@@ -98,6 +98,6 @@ export async function GET(req: NextRequest) {
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
     }
-    return NextResponse.json({ success: false, error: 'Server error' }, { status = 500 });
+    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }
