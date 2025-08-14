@@ -53,8 +53,10 @@ export async function GET(req: NextRequest) {
       salesFilter.headquarters = headquarters;
     }
 
-    const salesDataQuery = TravelerRecord.find(salesFilter);
-    const salesData = await salesDataQuery.populate<"companions">('companions') as ITraveler<ICompanion>[];
+    const salesData =
+      await TravelerRecord
+        .find<ITraveler<ICompanion>>(salesFilter)
+        .populate<{ companions: ICompanion[] }>('companions');
 
     const totalIncome = salesData.reduce((acc, traveler) => acc + traveler.amountPaid, 0);
 
