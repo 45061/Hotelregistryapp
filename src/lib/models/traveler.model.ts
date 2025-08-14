@@ -1,7 +1,27 @@
+import mongoose, { Schema, Document, models, Model } from 'mongoose';
 
-import mongoose, { Schema, models } from "mongoose";
+export interface ITraveler<T = mongoose.Types.ObjectId> extends Document {
+    roomNumber: string;
+    date: Date;
+    name: string;
+    nationality: string;
+    headquarters: string;
+    origin: string;
+    reservedNights: number;
+    reservationLocation: string;
+    arrivalTime: string;
+    destination: string;
+    idType: string;
+    idNumber: string;
+    expeditionPlace: string;
+    breakfast: boolean;
+    amountPaid: number;
+    paymentMethod: string;
+    companions: T[]; // Now it's a generic type
+    user: mongoose.Types.ObjectId;
+}
 
-const travelerSchema = new Schema({
+const travelerSchema = new Schema<ITraveler>({
     roomNumber: { type: String, required: true },
     date: { type: Date, required: true },
     name: { type: String, required: true },
@@ -26,6 +46,6 @@ const travelerSchema = new Schema({
     }
 }, { timestamps: true });
 
-const TravelerRecord = models.TravelerRecord || mongoose.model("TravelerRecord", travelerSchema);
+const TravelerRecord: Model<ITraveler> = models.TravelerRecord || mongoose.model<ITraveler>('TravelerRecord', travelerSchema);
 
 export default TravelerRecord;

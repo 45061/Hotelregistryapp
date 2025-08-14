@@ -57,6 +57,15 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 User Management
               </Link>
             )}
+            {user.isAdmin && (
+              <Link
+                href="/admin/sales"
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                onClick={closeDropdown}
+              >
+                Informe de Ventas
+              </Link>
+            )}
           </div>
         </nav>
       )}

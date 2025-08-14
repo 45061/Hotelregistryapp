@@ -168,7 +168,7 @@ export default function TravelerDetailsPage() {
                       <ul className="list-disc list-inside space-y-1">
                         {value.map((companion: any) => (
                           <li key={companion._id} className="text-gray-800">
-                            {companion.name} (ID: {companion.idNumber})
+                            {companion.name} ({companion.idType}: {companion.idNumber})
                           </li>
                         ))}
                       </ul>
