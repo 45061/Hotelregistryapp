@@ -92,6 +92,21 @@ export default function SalesReportPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      if (res.ok) {
+        router.push("/login");
+      } else {
+        toast.error("Error al cerrar sesión.");
+      }
+    } catch (error) {
+      toast.error("Ocurrió un error durante el cierre de sesión.");
+    }
+  };
+
   const barChartData = {
     labels: salesData ? Object.keys(salesData.incomeByRoom) : [],
     datasets: [
@@ -170,7 +185,7 @@ export default function SalesReportPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar user={user} onLogout={() => router.push('/login')} />
+      <Navbar user={user} onLogout={handleLogout} />
       <main className="p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Informe de Ventas</h1>
         <div className="bg-white p-6 rounded-lg shadow-md mb-6">
