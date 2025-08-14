@@ -52,7 +52,8 @@ export async function GET(req: NextRequest) {
       salesFilter.headquarters = headquarters;
     }
 
-    const salesData = await TravelerRecord.find(salesFilter).populate('companions');
+        const salesDataQuery = TravelerRecord.find(salesFilter);
+    const salesData = await salesDataQuery.populate('companions');
 
     const totalIncome = salesData.reduce((acc, traveler) => acc + traveler.amountPaid, 0);
 
