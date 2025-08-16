@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import User from '@/lib/models/user.model';
 import jwt from 'jsonwebtoken';
 
 export const dynamic = 'force-dynamic';
@@ -8,8 +6,6 @@ export const dynamic = 'force-dynamic';
 const SECRET = process.env.JWT_SECRET;
 
 export async function GET(req: NextRequest) {
-  await dbConnect();
-
   try {
     const tokenCookie = req.cookies.get('token');
 
@@ -18,31 +14,25 @@ export async function GET(req: NextRequest) {
     }
 
     const token = tokenCookie.value;
-    const decoded = jwt.verify(token, SECRET) as { id: string, isAdmin: boolean, authorized: boolean, isSuperUser: boolean };
-
-    if (!decoded || !decoded.id) {
-      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
-    }
-
-    const user = await (User as any).findById(decoded.id).select('+authorized');
-
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
-    }
+    const decoded = jwt.verify(token, SECRET) as {
+      id: string;
+      isAdmin: boolean;
+      authorized: boolean;
+      isSuperUser: boolean;
+      cashRole?: string;
+    };
 
     return NextResponse.json({
       success: true,
       data: {
-        id: user._id,
+        id: decoded.id,
         isAdmin: decoded.isAdmin,
-        authorized: user.authorized,
+        authorized: decoded.authorized,
         isSuperUser: decoded.isSuperUser,
-        cashRole: user.cashRole,
+        cashRole: decoded.cashRole,
       },
     });
-  } catch (error) {
-    console.error('Error fetching user details:', error);
-    // If token is expired or invalid, jwt.verify will throw an error
+  } catch (error: any) {
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
       return NextResponse.json({ success: false, error: 'Invalid or expired token' }, { status: 401 });
     }

@@ -29,9 +29,19 @@ export async function POST(req) {
       );
     }
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin, authorized: user.authorized, isSuperUser: user.isSuperUser }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      {
+        id: user._id,
+        isAdmin: user.isAdmin,
+        authorized: user.authorized,
+        isSuperUser: user.isSuperUser,
+        cashRole: user.cashRole,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
 
     const response = NextResponse.json(
       { success: true, token },

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Navbar from "@/components/Navbar";
+import { getUserFromToken } from "@/lib/auth";
 
 interface UserData {
   _id: string;
@@ -24,27 +25,17 @@ export default function AdminUsersPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const userData = await res.json();
-          setCurrentUser(userData.data);
-          if (!userData.data.isSuperUser) {
-            router.push("/unauthorized");
-          }
-        } else if (res.status === 401) {
-          router.push("/login");
-        } else {
-          router.push("/unauthorized");
-        }
-      } catch (error) {
-        router.push("/login");
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    fetchCurrentUser();
+    const userData = getUserFromToken();
+    if (!userData) {
+      router.push("/login");
+      setLoadingUser(false);
+      return;
+    }
+    setCurrentUser(userData);
+    if (!userData.isSuperUser) {
+      router.push("/unauthorized");
+    }
+    setLoadingUser(false);
   }, [router]);
 
   useEffect(() => {

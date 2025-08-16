@@ -15,6 +15,7 @@ import {
   ArcElement,
 } from 'chart.js';
 import Navbar from '@/components/Navbar';
+import { getUserFromToken } from '@/lib/auth';
 
 ChartJS.register(
   CategoryScale,
@@ -48,27 +49,20 @@ export default function SalesReportPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const userData = await res.json();
-          if (!userData.data.isAdmin) {
-            toast.error('Acceso no autorizado.');
-            router.push('/unauthorized');
-          } else {
-            setUser(userData.data);
-          }
-        } else {
-          router.push('/login');
-        }
-      } catch (error) {
-        router.push('/login');
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    fetchUser();
+    const userData = getUserFromToken();
+    if (!userData) {
+      router.push('/login');
+      setLoadingUser(false);
+      return;
+    }
+    if (!userData.isAdmin) {
+      toast.error('Acceso no autorizado.');
+      router.push('/unauthorized');
+      setLoadingUser(false);
+      return;
+    }
+    setUser(userData);
+    setLoadingUser(false);
   }, [router]);
 
   const handleFetchData = async () => {

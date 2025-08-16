@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import AtamsaLogo from "@/components/AtamsaLogo";
 import Navbar from "@/components/Navbar";
+import { getUserFromToken } from "@/lib/auth";
 
 interface TravelerRecord {
   _id: string;
@@ -58,27 +59,17 @@ export default function TravelerDetailsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const userData = await res.json();
-          setUser(userData.data);
-          if (!userData.data.authorized) {
-            router.push("/unauthorized");
-          }
-        } else if (res.status === 401) {
-          router.push("/login");
-        } else {
-          router.push("/unauthorized"); // Fallback for other non-2xx statuses
-        }
-      } catch (error) {
-        router.push("/login");
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    fetchUser();
+    const userData = getUserFromToken();
+    if (!userData) {
+      router.push("/login");
+      setLoadingUser(false);
+      return;
+    }
+    setUser(userData);
+    if (!userData.authorized) {
+      router.push("/unauthorized");
+    }
+    setLoadingUser(false);
   }, [router]);
 
   useEffect(() => {

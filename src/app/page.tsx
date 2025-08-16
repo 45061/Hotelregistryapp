@@ -7,6 +7,7 @@ import FormField from "@/components/FormField";
 import AtamsaLogo from "@/components/AtamsaLogo";
 import Navbar from "@/components/Navbar";
 import TravelerList from "@/components/TravelerList";
+import { getUserFromToken } from "@/lib/auth";
 
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -180,27 +181,17 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const userData = await res.json();
-          setUser(userData.data);
-          if (!userData.data.authorized) {
-            router.push("/unauthorized");
-          }
-        } else if (res.status === 401) {
-          router.push("/login");
-        } else {
-          router.push("/unauthorized"); // Fallback for other non-2xx statuses
-        }
-      } catch (error) {
-        router.push("/login");
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    fetchUser();
+    const userData = getUserFromToken();
+    if (!userData) {
+      router.push("/login");
+      setLoadingUser(false);
+      return;
+    }
+    setUser(userData);
+    if (!userData.authorized) {
+      router.push("/unauthorized");
+    }
+    setLoadingUser(false);
   }, [router]);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import FormField from '@/components/FormField';
+import { getUserFromToken } from '@/lib/auth';
 
 const initialForm = {
   type: 'Ingreso',
@@ -32,28 +33,22 @@ export default function CashPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          if (!data.data.authorized || !data.data.cashRole) {
-            toast.error('Acceso no autorizado.');
-            router.push('/unauthorized');
-            return;
-          }
-          setUser(data.data);
-          await Promise.all([fetchPaymentMethods(), fetchTransactions()]);
-        } else {
-          router.push('/login');
-        }
-      } catch (err) {
-        router.push('/login');
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-    fetchUser();
+    const userData = getUserFromToken();
+    if (!userData) {
+      router.push('/login');
+      setLoadingUser(false);
+      return;
+    }
+    if (!userData.authorized || !userData.cashRole) {
+      toast.error('Acceso no autorizado.');
+      router.push('/unauthorized');
+      setLoadingUser(false);
+      return;
+    }
+    setUser(userData);
+    Promise.all([fetchPaymentMethods(), fetchTransactions()]).finally(() => {
+      setLoadingUser(false);
+    });
   }, [router]);
 
   const fetchPaymentMethods = async () => {
