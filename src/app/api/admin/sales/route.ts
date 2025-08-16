@@ -68,9 +68,18 @@ export async function GET(req: NextRequest) {
     const mainTravelersByIdType = {};
     const companionsByIdType = {};
     const paymentsByMethod = {} as Record<string, number>;
+    const breakfastsByDate = {} as Record<string, number>;
+
+    // Initialize breakfast counts for each day in range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().split('T')[0];
+      breakfastsByDate[key] = 0;
+    }
 
     salesData.forEach(traveler => {
-      const { roomNumber, amountPaid, idType, companions, paymentMethod } = traveler;
+      const { roomNumber, amountPaid, idType, companions, paymentMethod, breakfast, date } = traveler;
       if (incomeByRoom.hasOwnProperty(roomNumber)) {
         incomeByRoom[roomNumber] += amountPaid;
       }
@@ -86,6 +95,13 @@ export async function GET(req: NextRequest) {
         companions.forEach(companion => {
           companionsByIdType[companion.idType] = (companionsByIdType[companion.idType] || 0) + 1;
         });
+      }
+
+      // Count breakfasts by day
+      if (breakfast) {
+        const key = new Date(date).toISOString().split('T')[0];
+        const totalBreakfasts = 1 + (companions ? companions.length : 0);
+        breakfastsByDate[key] = (breakfastsByDate[key] || 0) + totalBreakfasts;
       }
     });
 
@@ -136,6 +152,7 @@ export async function GET(req: NextRequest) {
         mainTravelersByIdType,
         companionsByIdType,
         paymentsByMethod,
+        breakfastsByDate,
         topRoomLast5Days,
         unsoldRoomsLast5Days,
         salesData,
