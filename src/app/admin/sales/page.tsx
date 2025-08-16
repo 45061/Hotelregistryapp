@@ -31,6 +31,10 @@ interface SalesData {
   incomeByRoom: Record<string, number>;
   mainTravelersByIdType: Record<string, number>;
   companionsByIdType: Record<string, number>;
+  paymentsByMethod: Record<string, number>;
+  topRoomLast5Days: string | null;
+  unsoldRoomsLast5Days: string[];
+  breakfastsByDate: Record<string, number>;
 }
 
 export default function SalesReportPage() {
@@ -145,6 +149,39 @@ export default function SalesReportPage() {
     ],
   };
 
+  const paymentMethodsChartData = {
+    labels: salesData ? Object.keys(salesData.paymentsByMethod) : [],
+    datasets: [
+      {
+        label: 'Ventas por Medio de Pago',
+        data: salesData ? Object.values(salesData.paymentsByMethod) : [],
+        backgroundColor: [
+          '#1E6C46',
+          '#FFE600',
+          '#2a9d8f',
+          '#e9c46a',
+          '#f4a261',
+          '#e76f51',
+        ],
+        borderColor: '#1E6C46',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const breakfastChartData = {
+    labels: salesData ? Object.keys(salesData.breakfastsByDate).sort() : [],
+    datasets: [
+      {
+        label: 'Desayunos por Día',
+        data: salesData ? Object.values(salesData.breakfastsByDate) : [],
+        backgroundColor: 'rgba(233, 196, 106, 0.6)',
+        borderColor: '#e9c46a',
+        borderWidth: 1,
+      },
+    ],
+  };
+
   const mainTravelersChartData = {
     labels: salesData ? Object.keys(salesData.mainTravelersByIdType) : [],
     datasets: [
@@ -243,6 +280,28 @@ export default function SalesReportPage() {
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Ingresos por Habitación (Circular)</h3>
                 <Pie data={pieChartData} />
               </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Ventas por Medio de Pago</h3>
+                <Bar data={paymentMethodsChartData} />
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Desayunos por Día</h3>
+                <Bar data={breakfastChartData} />
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Informe Últimos 5 Días</h3>
+              <p>
+                Habitación más vendida: {salesData.topRoomLast5Days || 'Sin ventas'}
+              </p>
+              <p>
+                Habitaciones sin ventas{' '}
+                {salesData.unsoldRoomsLast5Days.length > 0
+                  ? salesData.unsoldRoomsLast5Days.join(', ')
+                  : 'Ninguna'}
+              </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-md">
