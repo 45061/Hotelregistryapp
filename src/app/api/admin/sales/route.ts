@@ -67,9 +67,19 @@ export async function GET(req: NextRequest) {
 
     const mainTravelersByIdType = {};
     const companionsByIdType = {};
+    const paymentsByMethod = {} as Record<string, number>;
+    const breakfastsByDate = {} as Record<string, number>;
+
+    // Initialize breakfast counts for each day in range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().split('T')[0];
+      breakfastsByDate[key] = 0;
+    }
 
     salesData.forEach(traveler => {
-      const { roomNumber, amountPaid, idType, companions } = traveler;
+      const { roomNumber, amountPaid, idType, companions, paymentMethod, breakfast, date } = traveler;
       if (incomeByRoom.hasOwnProperty(roomNumber)) {
         incomeByRoom[roomNumber] += amountPaid;
       }
@@ -77,13 +87,62 @@ export async function GET(req: NextRequest) {
       // Count traveler
       mainTravelersByIdType[idType] = (mainTravelersByIdType[idType] || 0) + 1;
 
+      // Count payment methods
+      paymentsByMethod[paymentMethod] = (paymentsByMethod[paymentMethod] || 0) + 1;
+
       // Count companions
       if (companions && companions.length > 0) {
         companions.forEach(companion => {
           companionsByIdType[companion.idType] = (companionsByIdType[companion.idType] || 0) + 1;
         });
       }
+
+      // Count breakfasts by day
+      if (breakfast) {
+        const key = new Date(date).toISOString().split('T')[0];
+        const totalBreakfasts = 1 + (companions ? companions.length : 0);
+        breakfastsByDate[key] = (breakfastsByDate[key] || 0) + totalBreakfasts;
+      }
     });
+
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    const lastFiveDaysFilter: any = {
+      date: {
+        $gte: fiveDaysAgo,
+        $lte: new Date(),
+      },
+    };
+    if (headquarters) {
+      lastFiveDaysFilter.headquarters = headquarters;
+    }
+
+    const lastFiveDaysSales = await TravelerRecord.find<ITraveler>(lastFiveDaysFilter);
+
+    const roomSalesCount = allRooms.reduce((acc, room) => {
+      acc[room] = 0;
+      return acc;
+    }, {} as Record<string, number>);
+
+    lastFiveDaysSales.forEach(traveler => {
+      const { roomNumber } = traveler;
+      if (roomSalesCount.hasOwnProperty(roomNumber)) {
+        roomSalesCount[roomNumber] += 1;
+      }
+    });
+
+    let topRoomLast5Days: string | null = null;
+    let maxSales = 0;
+    Object.entries(roomSalesCount).forEach(([room, count]) => {
+      if (count > maxSales) {
+        maxSales = count as number;
+        topRoomLast5Days = room;
+      }
+    });
+
+    const unsoldRoomsLast5Days = Object.entries(roomSalesCount)
+      .filter(([_, count]) => count === 0)
+      .map(([room]) => room);
 
     return NextResponse.json({
       success: true,
@@ -92,6 +151,10 @@ export async function GET(req: NextRequest) {
         incomeByRoom,
         mainTravelersByIdType,
         companionsByIdType,
+        paymentsByMethod,
+        breakfastsByDate,
+        topRoomLast5Days,
+        unsoldRoomsLast5Days,
         salesData,
       },
     });
