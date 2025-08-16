@@ -30,7 +30,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: { id: user._id, isAdmin: decoded.isAdmin, authorized: decoded.authorized, isSuperUser: decoded.isSuperUser } });
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: user._id,
+        isAdmin: decoded.isAdmin,
+        authorized: user.authorized,
+        isSuperUser: decoded.isSuperUser,
+        cashRole: user.cashRole,
+      },
+    });
   } catch (error) {
     console.error('Error fetching user details:', error);
     // If token is expired or invalid, jwt.verify will throw an error
