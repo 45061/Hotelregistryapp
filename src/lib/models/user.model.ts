@@ -42,6 +42,10 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  cashRole: {
+    type: String,
+    enum: ['Cajero', 'Supervisor', 'Administrador'],
+  },
 }, { timestamps: true });
 
 userSchema.pre("save", async function (next) {

@@ -2,6 +2,8 @@
 import mongoose from 'mongoose';
 import '@/lib/models/traveler.model';
 import '@/lib/models/companion.model';
+import '@/lib/models/paymentMethod.model';
+import '@/lib/models/cashTransaction.model';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
