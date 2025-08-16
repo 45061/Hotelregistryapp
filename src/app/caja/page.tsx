@@ -37,7 +37,7 @@ export default function CashPage() {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          if (!data.data.cashRole) {
+          if (!data.data.authorized || !data.data.cashRole) {
             toast.error('Acceso no autorizado.');
             router.push('/unauthorized');
             return;

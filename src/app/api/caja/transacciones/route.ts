@@ -13,6 +13,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     const decoded: any = jwt.verify(tokenCookie.value, process.env.JWT_SECRET!);
+    if (!decoded.authorized) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
     const userId = decoded.id;
     const { searchParams } = new URL(req.url);
     const query: any = { user: userId };
@@ -58,13 +61,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       }
       const decoded: any = jwt.verify(tokenCookie.value, process.env.JWT_SECRET!);
+      if (!decoded.authorized) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      }
       userId = decoded.id;
     }
 
     // validate user exists
     const user = await (User as any).findById(userId);
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Invalid user' }, { status: 400 });
+    if (!user || !user.authorized) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     let paymentMethod = await (PaymentMethod as any).findOne({ name: medioPago });
