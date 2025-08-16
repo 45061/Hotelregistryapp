@@ -67,15 +67,19 @@ export async function GET(req: NextRequest) {
 
     const mainTravelersByIdType = {};
     const companionsByIdType = {};
+    const paymentsByMethod = {} as Record<string, number>;
 
     salesData.forEach(traveler => {
-      const { roomNumber, amountPaid, idType, companions } = traveler;
+      const { roomNumber, amountPaid, idType, companions, paymentMethod } = traveler;
       if (incomeByRoom.hasOwnProperty(roomNumber)) {
         incomeByRoom[roomNumber] += amountPaid;
       }
 
       // Count traveler
       mainTravelersByIdType[idType] = (mainTravelersByIdType[idType] || 0) + 1;
+
+      // Count payment methods
+      paymentsByMethod[paymentMethod] = (paymentsByMethod[paymentMethod] || 0) + 1;
 
       // Count companions
       if (companions && companions.length > 0) {
@@ -85,6 +89,45 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    const lastFiveDaysFilter: any = {
+      date: {
+        $gte: fiveDaysAgo,
+        $lte: new Date(),
+      },
+    };
+    if (headquarters) {
+      lastFiveDaysFilter.headquarters = headquarters;
+    }
+
+    const lastFiveDaysSales = await TravelerRecord.find<ITraveler>(lastFiveDaysFilter);
+
+    const roomSalesCount = allRooms.reduce((acc, room) => {
+      acc[room] = 0;
+      return acc;
+    }, {} as Record<string, number>);
+
+    lastFiveDaysSales.forEach(traveler => {
+      const { roomNumber } = traveler;
+      if (roomSalesCount.hasOwnProperty(roomNumber)) {
+        roomSalesCount[roomNumber] += 1;
+      }
+    });
+
+    let topRoomLast5Days: string | null = null;
+    let maxSales = 0;
+    Object.entries(roomSalesCount).forEach(([room, count]) => {
+      if (count > maxSales) {
+        maxSales = count as number;
+        topRoomLast5Days = room;
+      }
+    });
+
+    const unsoldRoomsLast5Days = Object.entries(roomSalesCount)
+      .filter(([_, count]) => count === 0)
+      .map(([room]) => room);
+
     return NextResponse.json({
       success: true,
       data: {
@@ -92,6 +135,9 @@ export async function GET(req: NextRequest) {
         incomeByRoom,
         mainTravelersByIdType,
         companionsByIdType,
+        paymentsByMethod,
+        topRoomLast5Days,
+        unsoldRoomsLast5Days,
         salesData,
       },
     });
