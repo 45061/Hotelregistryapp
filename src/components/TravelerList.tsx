@@ -228,6 +228,40 @@ const TravelerList: React.FC<TravelerListProps> = ({
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
+  const getPaginationRange = (totalPages: number, currentPage: number) => {
+    const delta = 1; // Number of pages to show around the current page
+    const range = [];
+    const pagesToShow = 3; // Number of initial pages to show
+
+    if (totalPages <= pagesToShow + 2) { // If total pages are few, show all
+      for (let i = 1; i <= totalPages; i++) {
+        range.push(i);
+      }
+    } else {
+      // Always show the first page
+      range.push(1);
+
+      // Show ellipsis if current page is far from the beginning
+      if (currentPage > pagesToShow) {
+        range.push("...");
+      }
+
+      // Show pages around the current page
+      for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+        range.push(i);
+      }
+
+      // Show ellipsis if current page is far from the end
+      if (currentPage < totalPages - delta - 1) {
+        range.push("...");
+      }
+
+      // Always show the last page
+      range.push(totalPages);
+    }
+    return range;
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
@@ -310,19 +344,57 @@ const TravelerList: React.FC<TravelerListProps> = ({
           </div>
           {/* Pagination */}
           <div className="flex justify-center mt-4 space-x-2">
-            {Array.from({ length: totalPages }, (_, i) => (
+            {/* Previous Button */}
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            >
+              Anterior
+            </button>
+
+            {/* Page Numbers */}
+            {getPaginationRange(totalPages, currentPage).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <span key={index} className="px-3 py-1">
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <button
+                  key={index}
+                  onClick={() => paginate(Number(page))}
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === page
+                      ? "bg-verde-principal text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+
+            {/* Next Button */}
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+
+            {/* Last Page Button */}
+            {totalPages > 3 && currentPage < totalPages && (
               <button
-                key={i}
-                onClick={() => paginate(i + 1)}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === i + 1
-                    ? "bg-verde-principal text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+                onClick={() => paginate(totalPages)}
+                className="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
               >
-                {i + 1}
+                Última
               </button>
-            ))}
+            )}
           </div>
         </div>
       )}
