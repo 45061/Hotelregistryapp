@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Traveler from '@/lib/models/traveler.model';
+import Companion from '@/lib/models/companion.model';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await dbConnect();
@@ -51,11 +52,18 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { id } = params;
 
   try {
-    const deletedTraveler = await (Traveler as any).findByIdAndDelete(id);
+    const travelerToDelete = await (Traveler as any).findById(id);
 
-    if (!deletedTraveler) {
+    if (!travelerToDelete) {
       return NextResponse.json({ success: false, error: 'Traveler not found' }, { status: 404 });
     }
+
+    // Delete associated companions
+    if (travelerToDelete.companions && travelerToDelete.companions.length > 0) {
+      await (Companion as any).deleteMany({ _id: { $in: travelerToDelete.companions } });
+    }
+
+    const deletedTraveler = await (Traveler as any).findByIdAndDelete(id);
 
     return NextResponse.json({ success: true, data: {} });
   } catch (error) {

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Traveler {
   _id: string;
@@ -121,6 +122,31 @@ const TravelerList: React.FC<TravelerListProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 8;
+
+  const router = useRouter();
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este registro?")) {
+      try {
+        const response = await fetch(`/api/travelers/${id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.success) {
+          setTravelers(travelers.filter((traveler) => traveler._id !== id));
+          alert("Registro eliminado con éxito.");
+          router.refresh(); // Refresh the page to reflect changes
+        } else {
+          setError(data.error || "Error al eliminar el registro.");
+        }
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }
+  };
 
   const handleDownloadCSV = () => {
     const fields = allTableFields.filter(
@@ -262,6 +288,14 @@ const TravelerList: React.FC<TravelerListProps> = ({
                               >
                                 Ver
                               </Link>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleDelete(traveler._id)}
+                                  className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs"
+                                >
+                                  Eliminar
+                                </button>
+                              )}
                             </div>
                           ) : (
                             getFieldValue(traveler, field)
