@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Traveler {
   _id: string;
@@ -78,7 +79,7 @@ const getFieldValue = (record: Traveler, field: keyof Traveler) => {
     if (dateString) {
       const dateObject = new Date(dateString);
       if (!isNaN(dateObject.getTime())) {
-        return formatInTimeZone(dateObject, "America/Bogota", "yyyy-MM-dd");
+        return formatInTimeZone(dateObject, "UTC", "yyyy-MM-dd");
       }
     }
     return "N/A";
@@ -121,6 +122,31 @@ const TravelerList: React.FC<TravelerListProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 8;
+
+  const router = useRouter();
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este registro?")) {
+      try {
+        const response = await fetch(`/api/travelers/${id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.success) {
+          setTravelers(travelers.filter((traveler) => traveler._id !== id));
+          alert("Registro eliminado con éxito.");
+          router.refresh(); // Refresh the page to reflect changes
+        } else {
+          setError(data.error || "Error al eliminar el registro.");
+        }
+      } catch (err: any) {
+        setError(err.message);
+      }
+    }
+  };
 
   const handleDownloadCSV = () => {
     const fields = allTableFields.filter(
@@ -202,6 +228,40 @@ const TravelerList: React.FC<TravelerListProps> = ({
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
+  const getPaginationRange = (totalPages: number, currentPage: number) => {
+    const delta = 1; // Number of pages to show around the current page
+    const range = [];
+    const pagesToShow = 3; // Number of initial pages to show
+
+    if (totalPages <= pagesToShow + 2) { // If total pages are few, show all
+      for (let i = 1; i <= totalPages; i++) {
+        range.push(i);
+      }
+    } else {
+      // Always show the first page
+      range.push(1);
+
+      // Show ellipsis if current page is far from the beginning
+      if (currentPage > pagesToShow) {
+        range.push("...");
+      }
+
+      // Show pages around the current page
+      for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+        range.push(i);
+      }
+
+      // Show ellipsis if current page is far from the end
+      if (currentPage < totalPages - delta - 1) {
+        range.push("...");
+      }
+
+      // Always show the last page
+      range.push(totalPages);
+    }
+    return range;
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
@@ -262,6 +322,14 @@ const TravelerList: React.FC<TravelerListProps> = ({
                               >
                                 Ver
                               </Link>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleDelete(traveler._id)}
+                                  className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs"
+                                >
+                                  Eliminar
+                                </button>
+                              )}
                             </div>
                           ) : (
                             getFieldValue(traveler, field)
@@ -276,19 +344,57 @@ const TravelerList: React.FC<TravelerListProps> = ({
           </div>
           {/* Pagination */}
           <div className="flex justify-center mt-4 space-x-2">
-            {Array.from({ length: totalPages }, (_, i) => (
+            {/* Previous Button */}
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            >
+              Anterior
+            </button>
+
+            {/* Page Numbers */}
+            {getPaginationRange(totalPages, currentPage).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <span key={index} className="px-3 py-1">
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <button
+                  key={index}
+                  onClick={() => paginate(Number(page))}
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === page
+                      ? "bg-verde-principal text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+
+            {/* Next Button */}
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+
+            {/* Last Page Button */}
+            {totalPages > 3 && currentPage < totalPages && (
               <button
-                key={i}
-                onClick={() => paginate(i + 1)}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === i + 1
-                    ? "bg-verde-principal text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+                onClick={() => paginate(totalPages)}
+                className="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
               >
-                {i + 1}
+                Última
               </button>
-            ))}
+            )}
           </div>
         </div>
       )}

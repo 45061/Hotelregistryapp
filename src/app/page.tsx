@@ -298,7 +298,8 @@ export default function HomePage() {
           }));
         }
       } else {
-        toast.error("Failed to save record.");
+        const errorData = await res.json();
+        toast.error(errorData.error || "Failed to save record.");
       }
     } catch (error) {
       toast.error("An error occurred.");
