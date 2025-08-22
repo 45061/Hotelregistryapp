@@ -79,7 +79,7 @@ const getFieldValue = (record: Traveler, field: keyof Traveler) => {
     if (dateString) {
       const dateObject = new Date(dateString);
       if (!isNaN(dateObject.getTime())) {
-        return formatInTimeZone(dateObject, "America/Bogota", "yyyy-MM-dd");
+        return formatInTimeZone(dateObject, "UTC", "yyyy-MM-dd");
       }
     }
     return "N/A";
