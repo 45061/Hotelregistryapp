@@ -265,11 +265,11 @@ const TravelerList: React.FC<TravelerListProps> = ({
   return (
     <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Lista de Viajeros</h1>
+        <h1 className="text-2xl font-bold font-heading">Lista de Viajeros</h1>
         {travelers.length > 0 && isAdmin && (
           <button
             onClick={handleDownloadCSV}
-            className="px-4 py-2  bg-verde-principal text-white rounded-md hover:bg-green-700 text-sm"
+            className="px-4 py-2  bg-verde-principal text-white rounded-md hover:bg-verde-oscuro text-sm"
           >
             Descargar CSV
           </button>

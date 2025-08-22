@@ -15,6 +15,7 @@ const config: Config = {
       },
       colors: {
         'verde-principal': '#1E6C46',
+        'verde-oscuro': '#1A5C3C',
         'amarillo': '#FFE600',
       },
       backgroundImage: {
