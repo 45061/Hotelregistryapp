@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   try {
-    const boxes = await (Box as any).find({}).populate("user", "firstName lastName");
+    const boxes = await (Box as any).find({}).populate("userId", "firstName lastName").populate("userIdOpenBox", "firstName lastName");
     return NextResponse.json({ success: true, data: boxes }, { status: 200 });
   } catch (error: any) {
     console.error("API Error (GET /api/boxes):", error);
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const userId = decoded.id;
     const body = await req.json();
 
-    const newBox = await (Box as any).create({ ...body, user: userId });
+    const newBox = await (Box as any).create({ ...body, userId: userId, userIdOpenBox: userId });
     return NextResponse.json({ success: true, data: newBox }, { status: 201 });
   } catch (error: any) {
     if (error instanceof jwt.JsonWebTokenError) {

@@ -8,11 +8,13 @@ import { toast } from 'react-hot-toast';
 
 interface BoxData {
   _id: string;
-  name: string;
-  description?: string;
-  user: { _id: string; firstName: string; lastName: string };
-  createdAt: string;
-  updatedAt: string;
+  activeBox: boolean;
+  nameBox: string;
+  lastClosingBalance?: number;
+  timesOpen: number;
+  lastOpening: string;
+  lastClosing: string;
+  userIdOpenBox: { _id: string; firstName: string; lastName: string };
 }
 
 const BoxPage: React.FC = () => {

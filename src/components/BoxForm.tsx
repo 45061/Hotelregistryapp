@@ -7,8 +7,8 @@ interface BoxFormProps {
   onBoxCreated: () => void;
   editingBox: {
     _id: string;
-    name: string;
-    description?: string;
+    nameBox: string;
+    initialBalance?: number;
   } | null;
   onCancelEdit: () => void;
 }
@@ -18,17 +18,17 @@ const BoxForm: React.FC<BoxFormProps> = ({
   editingBox,
   onCancelEdit,
 }) => {
-  const [name, setName] = useState(editingBox?.name || '');
-  const [description, setDescription] = useState(editingBox?.description || '');
+  const [nameBox, setNameBox] = useState(editingBox?.nameBox || '');
+  const [initialBalance, setInitialBalance] = useState(editingBox?.initialBalance || 0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (editingBox) {
-      setName(editingBox.name);
-      setDescription(editingBox.description || '');
+      setNameBox(editingBox.nameBox);
+      setInitialBalance(editingBox.initialBalance || 0);
     } else {
-      setName('');
-      setDescription('');
+      setNameBox('');
+      setInitialBalance(0);
     }
   }, [editingBox]);
 
@@ -45,15 +45,15 @@ const BoxForm: React.FC<BoxFormProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, description }),
+        body: JSON.stringify({ nameBox, initialBalance }),
       });
 
       const data = await response.json();
 
       if (data.success) {
         toast.success(editingBox ? 'Caja actualizada con éxito!' : 'Caja creada con éxito!');
-        setName('');
-        setDescription('');
+        setNameBox('');
+        setInitialBalance(0);
         onBoxCreated(); // Notify parent to refresh list
       } else {
         toast.error(data.error || 'Error al guardar la caja.');
@@ -69,32 +69,33 @@ const BoxForm: React.FC<BoxFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="nameBox" className="block text-sm font-medium text-gray-700">
           Nombre de la Caja
         </label>
         <input
           type="text"
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          id="nameBox"
+          value={nameBox}
+          onChange={(e) => setNameBox(e.target.value)}
           required
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-verde-principal focus:ring-verde-principal sm:text-sm"
         />
       </div>
       <div>
         <label
-          htmlFor="description"
+          htmlFor="initialBalance"
           className="block text-sm font-medium text-gray-700"
         >
-          Descripción
+          Saldo Inicial
         </label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
+        <input
+          type="number"
+          id="initialBalance"
+          value={initialBalance}
+          onChange={(e) => setInitialBalance(Number(e.target.value))}
+          required
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-verde-principal focus:ring-verde-principal sm:text-sm"
-        ></textarea>
+        />
       </div>
       <div className="flex space-x-4">
         <button

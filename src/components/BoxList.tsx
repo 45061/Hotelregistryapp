@@ -2,14 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 interface BoxData {
   _id: string;
-  name: string;
-  description?: string;
-  user: { _id: string; firstName: string; lastName: string };
-  createdAt: string;
-  updatedAt: string;
+  activeBox: boolean;
+  nameBox: string;
+  lastClosingBalance?: number;
+  timesOpen: number;
+  lastOpening: string;
+  lastClosing: string;
+  userIdOpenBox: { _id: string; firstName: string; lastName: string };
 }
 
 interface BoxListProps {
@@ -88,28 +91,31 @@ const BoxList: React.FC<BoxListProps> = ({
       <table className="min-w-full bg-white">
         <thead>
           <tr>
-            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Nombre</th>
-            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Descripción</th>
-            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Creado Por</th>
-            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Fecha Creación</th>
+            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Activa o Inactiva</th>
+            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Nombre Caja</th>
+            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Ultimo Saldo de Cierre</th>
+            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Veces Abierta</th>
+            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Última Apertura</th>
+            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Último Cierre</th>
+            <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Caja Abierta Por</th>
             <th className="py-3 px-4 border-b border-gray-200 bg-verde-principal text-left text-xs font-semibold text-white uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {boxes.map((box) => (
             <tr key={box._id} className="hover:bg-gray-50">
-              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.name}</td>
-              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.description || 'N/A'}</td>
-              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.user ? `${box.user.firstName} ${box.user.lastName}` : 'N/A'}</td>
-              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{new Date(box.createdAt).toLocaleDateString()}</td>
+              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.activeBox ? 'Activa' : 'Inactiva'}</td>
+              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.nameBox}</td>
+              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.lastClosingBalance || 'N/A'}</td>
+              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.timesOpen || 'N/A'}</td>
+              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.lastOpening || 'N/A'}</td>
+              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.lastClosing || 'N/A'}</td>
+              <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.userIdOpenBox ? `${box.userIdOpenBox.firstName} ${box.userIdOpenBox.lastName}` : 'N/A'}</td>
               <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">
                 <div className="flex space-x-2">
-                  <button
-                    onClick={() => onEdit(box)}
-                    className="px-3 py-1 bg-verde-principal text-white rounded-md hover:bg-verde-oscuro text-xs"
-                  >
-                    Editar
-                  </button>
+                  <Link href={`/box/${box._id}`} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-xs">
+                    Ir a Caja
+                  </Link>
                   <button
                     onClick={() => handleDelete(box._id)}
                     className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs"
