@@ -15,7 +15,13 @@ export async function GET(req: NextRequest) {
     const token = tokenCookie.value;
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
 
-    if (!decoded || !decoded.isSuperUser) {
+    if (!decoded || !decoded.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized: Invalid token" }, { status: 401 });
+    }
+
+    const user = await (User as any).findById(decoded.id);
+
+    if (!user || !user.isSuperUser) {
       return NextResponse.json({ success: false, error: "Unauthorized: Not a SuperAdmin" }, { status: 403 });
     }
 
