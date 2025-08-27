@@ -3,11 +3,13 @@ import dbConnect from "@/lib/db";
 import Box from "@/lib/models/box.model";
 import jwt from "jsonwebtoken";
 
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   await dbConnect();
 
   try {
-    const boxes = await (Box as any).find({}).populate("userId", "firstName lastName").populate("userIdOpenBox", "firstName lastName");
+    const boxes = await (Box as any).find({}).populate("userId", "firstName lastName").populate("userIdOpenBox", "firstName lastName").populate("cashReseived").populate("cashWithdrawn");
     return NextResponse.json({ success: true, data: boxes }, { status: 200 });
   } catch (error: any) {
     console.error("API Error (GET /api/boxes):", error);

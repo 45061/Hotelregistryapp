@@ -9,7 +9,7 @@ interface AtamsaLogoProps {
 const AtamsaLogo: React.FC<AtamsaLogoProps> = ({ isLarge = false }) => {
   const width = isLarge ? 160 : 80;
   const height = isLarge ? 160 : 80;
-  const className = isLarge ? "h-40 w-auto" : "h-20 w-auto";
+  const className = isLarge ? "h-40" : "h-20";
 
   return (
     <Image
@@ -18,6 +18,8 @@ const AtamsaLogo: React.FC<AtamsaLogoProps> = ({ isLarge = false }) => {
       width={width}
       height={height}
       className={className}
+      style={{ width: 'auto' }}
+      priority
     />
   );
 };

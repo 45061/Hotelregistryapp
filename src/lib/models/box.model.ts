@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IBox extends Document {
   userId: mongoose.Schema.Types.ObjectId;
   userIdOpenBox: mongoose.Schema.Types.ObjectId;
+  userIdCloseBox: mongoose.Schema.Types.ObjectId;
   nameBox: string;
   lastClosingBalance?: number;
   timesOpen: number;
@@ -26,6 +27,10 @@ const boxSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    userIdCloseBox: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
     nameBox: {
       type: String,

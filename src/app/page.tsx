@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import FormField from "@/components/FormField";
 import AtamsaLogo from "@/components/AtamsaLogo";
-import Navbar from "@/components/Navbar";
+// import Navbar from "@/components/Navbar"; // Eliminar esta línea
 import TravelerList from "@/components/TravelerList";
 
 import { formatInTimeZone } from "date-fns-tz";
@@ -456,7 +456,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar user={user} onLogout={handleLogout} />
       <div className="container mx-auto p-4">
         <div className="flex justify-center mb-8">
           <AtamsaLogo isLarge={true} />

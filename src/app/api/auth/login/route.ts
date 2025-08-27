@@ -11,7 +11,7 @@ export async function POST(req) {
   try {
     const { email, password } = await req.json();
 
-    const user = await (User as any).findOne({ email }).select("+password");
+    const user = await (User as any).findOne({ email }).select("+password firstName lastName");
 
     if (!user) {
       return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(req) {
       );
     }
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin, authorized: user.authorized, isSuperUser: user.isSuperUser }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, firstName: user.firstName, lastName: user.lastName, isAdmin: user.isAdmin, authorized: user.authorized, isSuperUser: user.isSuperUser }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
 

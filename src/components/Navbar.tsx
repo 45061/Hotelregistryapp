@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import AtamsaLogo from "./AtamsaLogo";
 
 interface NavbarProps {
   user: any;
   onLogout: () => Promise<void>;
+  loading: boolean;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
+const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -23,10 +21,11 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
   return (
     <header className="flex items-center justify-between p-4 bg-white shadow-md">
       <div className="flex items-center">
-        <AtamsaLogo />
-        <h1 className="ml-4 font-heading text-2xl font-bold text-gray-900">
-          Traveler Registry
-        </h1>
+        <Link href="/">
+          <h1 className="ml-4 font-heading text-2xl font-bold text-gray-900">
+            Traveler Registry
+          </h1>
+        </Link>
       </div>
       {user && user.authorized && (
         <nav className="relative">
@@ -66,15 +65,25 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 Informe de Ventas
               </Link>
             )}
+            {user.authorized && (
+              <Link
+                href="/box"
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                onClick={closeDropdown}
+              >
+                Gestión de Cajas
+              </Link>
+            )}
           </div>
         </nav>
       )}
       {user && user.authorized && (
         <button
           onClick={onLogout}
-          className="px-4 py-2 font-bold text-white rounded bg-verde-principal hover:bg-opacity-90"
+          disabled={loading}
+          className="px-4 py-2 font-bold text-white rounded bg-verde-principal hover:bg-opacity-90 disabled:bg-gray-400"
         >
-          Logout
+          {loading ? 'Cerrando...' : 'Logout'}
         </button>
       )}
     </header>

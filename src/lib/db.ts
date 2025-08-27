@@ -1,7 +1,10 @@
-
 import mongoose from 'mongoose';
 import '@/lib/models/traveler.model';
 import '@/lib/models/companion.model';
+import '@/lib/models/user.model';
+import '@/lib/models/box.model';
+import '@/lib/models/payment.model';
+import '@/lib/models/withdraw.model';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
