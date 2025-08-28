@@ -19,7 +19,8 @@ declare interface TravelerRecord {
   companions?: { name: string; idNumber: string; idType: string; expeditionPlace: string }[];
 }
 
-declare interface User {
+// Renamed to avoid clashing with Mongoose's User model
+declare interface AppUser {
   _id?: string;
   email: string;
   firstName: string;
