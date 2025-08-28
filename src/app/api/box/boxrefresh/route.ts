@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     const id = authorization.split(" ")[1];
 
-    const box = await Box.findById(id).populate({
+    const box = await (Box as any).findById(id).populate({
       path: "userId userIdOpenBox cashReseived cashWithdrawn",
     });
 

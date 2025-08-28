@@ -133,7 +133,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
       };
       fetchWithdraw();
     }
-  }, [charge, loadingUser, user, thisIsTheBox, router]);
+  }, [charge, loadingUser, user, thisIsTheBox, router, dispatch]);
 
   const handleCloseBox = async () => {
     try {
