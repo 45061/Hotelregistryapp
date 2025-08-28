@@ -96,7 +96,7 @@ function CashReseived({ dataRoom, boxId, onPaymentSuccess }) {
         <Select
           required
           maxDropdownHeight={380}
-          icon={<> <Cash size={14} /> </>}
+          leftSection={<Cash size={14} />}
           value={payment}
           onChange={setPayment}
           label="Selecciona el metodo de pago"
@@ -127,7 +127,7 @@ function CashReseived({ dataRoom, boxId, onPaymentSuccess }) {
         <Select
           required
           maxDropdownHeight={380}
-          icon={<> <Bed size={14} /> </>}
+          leftSection={<Bed size={14} />}
           value={room}
           onChange={setRoom}
           label="Habitacion del pago"
@@ -140,7 +140,7 @@ function CashReseived({ dataRoom, boxId, onPaymentSuccess }) {
         <Select
           required
           maxDropdownHeight={380}
-          icon={<> <CashBanknote size={14} /> </>}
+          leftSection={<CashBanknote size={14} />}
           value={paymentBy}
           onChange={setPaymentBy}
           label="Motivo del Pago"
