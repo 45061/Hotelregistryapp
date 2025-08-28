@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IBox extends Document {
   userId: mongoose.Schema.Types.ObjectId;
@@ -59,6 +59,8 @@ const boxSchema = new Schema(
   }
 );
 
-const Box = mongoose.models.Box || mongoose.model<IBox>('Box', boxSchema);
+const Box: Model<IBox> =
+  (mongoose.models.Box as Model<IBox>) ||
+  mongoose.model<IBox>('Box', boxSchema);
 
 export default Box;
