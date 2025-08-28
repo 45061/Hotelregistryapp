@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 
     jwt.verify(token, SECRET as string);
 
-    const payment = await Payment.find()
+    const payment = await (Payment as any).find()
       .populate("userId", "firstName")
       // .populate("roomId", "roomNumer") // Removed
       .populate({
