@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "No find Box" }, { status: 400 });
     }
 
-    const withdraw = await Withdraw.create({
+    const withdraw = await (Withdraw as any).create({
       boxId: box._id,
       userId: user._id,
       reasonOfWithdraw,
