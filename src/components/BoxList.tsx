@@ -19,11 +19,13 @@ interface BoxData {
 interface BoxListProps {
   refreshTrigger: number;
   onEdit: (box: BoxData) => void;
+  user: any;
 }
 
 const BoxList: React.FC<BoxListProps> = ({
   refreshTrigger,
   onEdit,
+  user,
 }) => {
   const [boxes, setBoxes] = useState<BoxData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,18 +148,14 @@ const BoxList: React.FC<BoxListProps> = ({
                         Abrir Caja
                       </button>
                     )}
-                    <button
-                      onClick={() => onEdit(box)}
-                      className="px-3 py-1 bg-amarillo text-gray-800 rounded-md hover:bg-opacity-90 text-xs"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(box._id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs"
-                    >
-                      Eliminar
-                    </button>
+                    {user && user.isSuperUser && (
+                      <button
+                        onClick={() => handleDelete(box._id)}
+                        className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs"
+                      >
+                        Eliminar
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

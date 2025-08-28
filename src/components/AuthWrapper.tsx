@@ -19,22 +19,22 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
 
   const fetchUserAndBoxes = useCallback(async () => {
     setLoading(true);
-    console.log("fetchUserAndBoxes called.");
+    
     try {
       const userRes = await fetch('/api/auth/me');
-      console.log("userRes.ok:", userRes.ok);
+      
       if (userRes.ok) {
         const userData = await userRes.json();
-        console.log("userData.success:", userData.success);
+        
         if (userData.success) {
           setUser(userData.data);
-          console.log("Current user ID:", userData.data?.id);
+          
           
           const openBoxRes = await fetch('/api/boxes/openBoxForUser');
-          console.log("openBoxRes.ok:", openBoxRes.ok);
+          
           if (openBoxRes.ok) {
             const openBoxData = await openBoxRes.json();
-            console.log("Open box data:", openBoxData.data);
+            
             setOpenBox(openBoxData.data);
           }
         } else {
@@ -48,7 +48,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
       setUser(null);
     } finally {
       setLoading(false);
-      console.log("fetchUserAndBoxes finished. Loading set to false.");
+      
     }
   }, []);
 
@@ -56,9 +56,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     fetchUserAndBoxes();
   }, [charge, fetchUserAndBoxes]);
 
-  useEffect(() => {
-    console.log("openBox state changed:", openBox);
-  }, [openBox]);
+  
 
   const handleLogout = async () => {
     if (loading) {
@@ -134,7 +132,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     }
   };
 
-  console.log("Props passed to Navbar: user", user, "onLogout", handleLogout, "loading", loading);
+  
   return (
     <>
       <Navbar user={user} onLogout={handleLogout} loading={loading} />
