@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "No find Box" }, { status: 400 });
     }
 
-    const payment = await Payment.create({
+    const payment = await (Payment as any).create({
       boxId: box._id,
       userId: user._id,
       roomId: roomId, // Now a string
