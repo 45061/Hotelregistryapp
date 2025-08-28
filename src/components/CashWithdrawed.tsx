@@ -83,7 +83,7 @@ function CashWithdrawed({ boxId, onWithdrawSuccess }) {
         <Select
           required
           maxDropdownHeight={380}
-          icon={<CashBanknote size={14} />}
+          leftSection={<CashBanknote size={14} />}
           value={paymentBy}
           onChange={setPaymentBy}
           label="Motivo del Retiro"
