@@ -289,6 +289,8 @@ export default function BoxId({ params }: { params: { id: string } }) {
             dispatch(showAddCashAction());
             dispatch(incrementCharge());
           }}
+          size="md"
+          title="Añadir Dinero"
         >
           <CashReseived
             dataRoom={dataRoom}
@@ -305,6 +307,8 @@ export default function BoxId({ params }: { params: { id: string } }) {
             dispatch(showWithdrawCashAction());
             dispatch(incrementCharge());
           }}
+          size="md"
+          title="Retirar Dinero"
         >
           <CashWithdrawed 
             boxId={thisIsTheBox} 
