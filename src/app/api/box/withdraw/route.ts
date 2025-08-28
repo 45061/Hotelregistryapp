@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
 
     jwt.verify(token, SECRET as string);
 
-    const withdraw = await Withdraw.find()
+    const withdraw = await (Withdraw as any).find()
       .populate("userId", "firstName")
       .populate({
         path: "boxId",
