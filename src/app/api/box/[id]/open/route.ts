@@ -25,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const boxId = params.id;
 
     // 3. Find the box
-    const box = await Box.findById(boxId);
+    const box = await (Box as any).findById(boxId);
     if (!box) {
       return NextResponse.json({ success: false, error: 'Box not found' }, { status: 404 });
     }
