@@ -56,7 +56,7 @@ export default function BoxTable({ dataBox }) {
 
   useEffect(() => {
     dispatch(existingBalanceBox(total));
-  }, [dataBox]);
+  }, [dataBox, dispatch, total]);
 
   return (
     <>

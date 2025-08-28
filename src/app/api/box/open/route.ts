@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Authorization header missing or invalid' }, { status: 401 });
     }
     const decoded = jwt.verify(token, SECRET as string) as { id: string };
-    const user = await User.findById(decoded.id);
+    const user = await (User as any).findById(decoded.id);
 
     if (!user) {
       return NextResponse.json({ message: "No find User" }, { status: 400 });
