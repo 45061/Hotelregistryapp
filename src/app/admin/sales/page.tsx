@@ -45,6 +45,12 @@ export default function SalesReportPage() {
   const [headquarters, setHeadquarters] = useState('');
   const [salesData, setSalesData] = useState<SalesData | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Nuevos estados para la sección de pagos
+  const [paymentStartDate, setPaymentStartDate] = useState(new Date().toISOString().slice(0, 16));
+  const [paymentEndDate, setPaymentEndDate] = useState(new Date().toISOString().slice(0, 16));
+  const [detailedPayments, setDetailedPayments] = useState<any[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -93,6 +99,28 @@ export default function SalesReportPage() {
       toast.error('Ocurrió un error al cargar los datos.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFetchPaymentsData = async () => {
+    if (!paymentStartDate || !paymentEndDate) {
+      toast.error('Por favor, selecciona un rango de fechas para los pagos.');
+      return;
+    }
+    setLoadingPayments(true);
+    try {
+      const url = `/api/admin/payments?startDate=${paymentStartDate}&endDate=${paymentEndDate}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        setDetailedPayments(data.data.payments);
+      } else {
+        toast.error(data.error || 'Error al cargar los datos de pagos.');
+      }
+    } catch (error) {
+      toast.error('Ocurrió un error al cargar los datos de pagos.');
+    } finally {
+      setLoadingPayments(false);
     }
   };
 
@@ -315,6 +343,75 @@ export default function SalesReportPage() {
             </div>
           </div>
         )}
+
+        {/* Sección de Informe Detallado de Pagos */}
+        <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Informe Detallado de Pagos</h2>
+          <div className="flex flex-wrap items-end gap-4 mb-4">
+            <div>
+              <label htmlFor="paymentStartDate" className="block text-sm font-medium text-gray-700">
+                Fecha y Hora de Inicio
+              </label>
+              <input
+                type="datetime-local"
+                id="paymentStartDate"
+                value={paymentStartDate}
+                onChange={(e) => setPaymentStartDate(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="paymentEndDate" className="block text-sm font-medium text-gray-700">
+                Fecha y Hora de Fin
+              </label>
+              <input
+                type="datetime-local"
+                id="paymentEndDate"
+                value={paymentEndDate}
+                onChange={(e) => setPaymentEndDate(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            <button
+              onClick={handleFetchPaymentsData}
+              disabled={loadingPayments}
+              className="px-4 py-2 bg-verde-principal text-white rounded-md hover:bg-opacity-90 transition-colors duration-200 disabled:bg-gray-400"
+            >
+              {loadingPayments ? 'Buscando...' : 'Buscar Pagos'}
+            </button>
+          </div>
+
+          {loadingPayments ? (
+            <p>Cargando pagos...</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Habitación</th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Pagado</th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Razón de Pago</th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método de Pago</th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {detailedPayments.map((payment) => (
+                    <tr key={payment._id}>
+                      <td className="py-4 px-6 whitespace-nowrap">{payment.user ? `${payment.user.firstName} ${payment.user.lastName}` : 'N/A'}</td>
+                      <td className="py-4 px-6 whitespace-nowrap">{payment.traveler?.roomNumber || 'N/A'}</td>
+                      <td className="py-4 px-6 whitespace-nowrap">{new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(payment.cash)}</td>
+                      <td className="py-4 px-6 whitespace-nowrap">{payment.reasonOfPay}</td>
+                      <td className="py-4 px-6 whitespace-nowrap">{payment.typePayment}</td>
+                      <td className="py-4 px-6 whitespace-nowrap">{new Date(payment.createdAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
