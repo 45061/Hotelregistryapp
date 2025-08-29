@@ -1,7 +1,8 @@
+
 import React from 'react';
 
 interface Traveler {
-  _id: string;
+  _id?: string;
   name: string;
   roomNumber: string;
   amountPaid: number;
@@ -34,7 +35,7 @@ const PendingPaymentsList: React.FC<Props> = ({ travelers }) => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {travelers.map((traveler, index) => (
-              <tr key={traveler._id} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-green-100 transition-colors duration-200`}>
+              <tr key={traveler._id || index} className={`${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-green-100 transition-colors duration-200`}>
                 <td className="py-3 px-4 whitespace-nowrap">{traveler.name}</td>
                 <td className="py-3 px-4 whitespace-nowrap">{traveler.roomNumber}</td>
                 <td className="py-3 px-4 whitespace-nowrap">{formatCurrency(traveler.amountPaid)}</td>
