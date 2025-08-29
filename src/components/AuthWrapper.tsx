@@ -64,10 +64,8 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
       return; // Prevent logout if still loading
     }
 
-    console.log("handleLogout called. User:", user, "openBox:", openBox);
     try {
       if (openBox) {
-        console.log("openBox is true, attempting to close box...");
         const lastOpeningDate = new Date(openBox.lastOpening);
 
         const cashReseivedInThisBox = (openBox?.cashReseived || [])

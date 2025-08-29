@@ -1,9 +1,11 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import OpenBoxModal from './OpenBoxModal';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface BoxData {
   _id: string;
@@ -93,6 +95,16 @@ const BoxList: React.FC<BoxListProps> = ({
     }
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return formatInTimeZone(new Date(dateString), 'America/Bogota', 'yyyy-MM-dd HH:mm:ss');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return 'Invalid Date';
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-4">Cargando cajas...</div>;
   }
@@ -128,8 +140,8 @@ const BoxList: React.FC<BoxListProps> = ({
                 <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.nameBox}</td>
                 <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.lastClosingBalance || 'N/A'}</td>
                 <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.timesOpen || 'N/A'}</td>
-                <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.lastOpening || 'N/A'}</td>
-                <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.lastClosing || 'N/A'}</td>
+                <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{formatDate(box.lastOpening)}</td>
+                <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{formatDate(box.lastClosing)}</td>
                 <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">{box.userIdOpenBox ? `${box.userIdOpenBox.firstName} ${box.userIdOpenBox.lastName}` : 'N/A'}</td>
                 <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">
                   <div className="flex space-x-2">

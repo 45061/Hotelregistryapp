@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -7,6 +8,7 @@ import FormField from "@/components/FormField";
 import AtamsaLogo from "@/components/AtamsaLogo";
 // import Navbar from "@/components/Navbar"; // Eliminar esta línea
 import TravelerList from "@/components/TravelerList";
+import PendingPaymentsList from "@/components/PendingPaymentsList";
 
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -126,6 +128,7 @@ const paymentMethods = [
   "Transferencia",
   "Link de Pago",
   "Euros",
+  "Debe",
 ];
 const reservationLocations = [
   "Directo",
@@ -177,6 +180,7 @@ export default function HomePage() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [refreshList, setRefreshList] = useState(0);
   const recordsPerPage = 8;
+  const [showPending, setShowPending] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -207,7 +211,7 @@ export default function HomePage() {
     if (!loadingUser && user && user.authorized) {
       fetchRecords();
     }
-  }, [loadingUser, user]);
+  }, [loadingUser, user, refreshList]);
 
   const fetchRecords = async () => {
     try {
@@ -664,6 +668,21 @@ export default function HomePage() {
             </div>
           </form>
         </div>
+
+        <div className="mb-8">
+          <button
+            onClick={() => setShowPending(!showPending)}
+            className="px-6 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500 transition-colors duration-200 font-semibold"
+          >
+            {showPending ? "Ocultar Pagos Pendientes" : "Mostrar Pagos Pendientes"}
+          </button>
+        </div>
+
+        {showPending && (
+          <div className="mb-8">
+            <PendingPaymentsList travelers={records.filter(r => r.paymentMethod === 'Debe')} />
+          </div>
+        )}
 
         <TravelerList
           refreshTrigger={refreshList}

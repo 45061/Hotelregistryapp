@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/lib/models/user.model";
@@ -11,7 +10,7 @@ export async function POST(req) {
   try {
     const { email, password } = await req.json();
 
-    const user = await (User as any).findOne({ email }).select("+password firstName lastName");
+    const user = await (User as any).findOne({ email }).select("+password firstName lastName isAdmin authorized isSuperUser");
 
     if (!user) {
       return NextResponse.json(

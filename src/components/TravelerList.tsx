@@ -96,6 +96,13 @@ const getFieldValue = (record: Traveler, field: keyof Traveler) => {
     }
     return "N/A";
   }
+  if (field === "amountPaid") {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(record[field]);
+  }
   if (typeof record[field] === "boolean") {
     return record[field] ? "Yes" : "No";
   }
@@ -112,7 +119,7 @@ interface TravelerListProps {
   isAdmin: boolean;
 }
 
-const TravelerList: React.FC<TravelerListProps> = ({
+const TravelerList: React.FC<TravelerListProps> = ({ 
   refreshTrigger,
   onEdit,
   isAdmin,
@@ -332,7 +339,7 @@ const TravelerList: React.FC<TravelerListProps> = ({
                               )}
                             </div>
                           ) : (
-                            getFieldValue(traveler, field)
+                            getFieldValue(traveler, field as keyof Traveler)
                           )}
                         </td>
                       ))}
@@ -366,7 +373,7 @@ const TravelerList: React.FC<TravelerListProps> = ({
                 <button
                   key={index}
                   onClick={() => paginate(Number(page))}
-                  className={`px-3 py-1 rounded-md ${
+                  className={`px-3 py-1 rounded-md ${ 
                     currentPage === page
                       ? "bg-verde-principal text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
