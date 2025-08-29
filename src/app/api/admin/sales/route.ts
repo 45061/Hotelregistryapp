@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import TravelerRecord, { ITraveler } from '@/lib/models/traveler.model';
 import dbConnect from '@/lib/db';
