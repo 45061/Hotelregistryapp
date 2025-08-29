@@ -139,7 +139,7 @@ export default function TravelerDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
-      <Navbar user={user} onLogout={handleLogout} />
+      <Navbar user={user} onLogout={handleLogout} loading={loadingUser} />
 
       <main className="p-8">
         <div className="p-6 bg-white rounded-lg shadow-md border border-gray-200">

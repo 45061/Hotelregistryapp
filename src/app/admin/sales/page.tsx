@@ -14,7 +14,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import Navbar from '@/components/Navbar';
+
 
 ChartJS.register(
   CategoryScale,
@@ -222,7 +222,7 @@ export default function SalesReportPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar user={user} onLogout={handleLogout} />
+      
       <main className="p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Informe de Ventas</h1>
         <div className="bg-white p-6 rounded-lg shadow-md mb-6">

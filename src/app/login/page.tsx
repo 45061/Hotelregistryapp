@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AtamsaLogo from "@/components/AtamsaLogo";
+import { useDispatch } from "react-redux";
+import { incrementCharge } from "@/store/actions/dateAction";
 
 import toast from "react-hot-toast";
 
@@ -11,6 +13,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +33,7 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
+        dispatch(incrementCharge());
         router.push("/");
       } else {
         const data = await res.json();

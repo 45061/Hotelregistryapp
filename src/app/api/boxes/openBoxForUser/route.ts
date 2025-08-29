@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import User from "@/lib/models/user.model";
+import Box from "@/lib/models/box.model";
 import jwt from "jsonwebtoken";
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   await dbConnect();
@@ -19,19 +21,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized: Invalid token" }, { status: 401 });
     }
 
-    const user = await (User as any).findById(decoded.id);
+    const userId = decoded.id;
 
-    if (!user || !user.isSuperUser) {
-      return NextResponse.json({ success: false, error: "Unauthorized: Not a SuperAdmin" }, { status: 403 });
+    const openBox = await (Box as any).findOne({ activeBox: true, userIdOpenBox: userId })
+      .populate("userId", "firstName lastName")
+      .populate("userIdOpenBox", "firstName lastName")
+      .populate("cashReseived")
+      .populate("cashWithdrawn");
+
+    if (!openBox) {
+      return NextResponse.json({ success: true, data: null }, { status: 200 });
     }
 
-    const users = await (User as any).find({});
-    return NextResponse.json({ success: true, data: users }, { status: 200 });
-  } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ success: false, error: "Unauthorized: Invalid token" }, { status: 401 });
-    }
-    console.error("API Error (GET /api/admin/users):", error);
+    return NextResponse.json({ success: true, data: openBox }, { status: 200 });
+  } catch (error: any) {
+    console.error("API Error (GET /api/boxes/openBoxForUser):", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
