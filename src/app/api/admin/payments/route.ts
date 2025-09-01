@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         return {
           ...payment.toObject(),
           user: payment.userId, // Rename userId to user
-          traveler: traveler ? { roomNumber: traveler.roomNumber } : null,
+          traveler: traveler ? { roomNumber: traveler.roomNumber, headquarters: traveler.headquarters } : null,
         };
       })
     );
