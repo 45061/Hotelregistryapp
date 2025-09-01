@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Payment, { IPayment } from '@/lib/models/payment.model';
+import Withdraw, { IWithdraw } from '@/lib/models/withdraw.model';
 import dbConnect from '@/lib/db';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
@@ -56,12 +57,27 @@ export async function GET(req: NextRequest) {
       paymentsByMethod[payment.typePayment] = (paymentsByMethod[payment.typePayment] || 0) + payment.cash;
     });
 
+    const withdrawalsFilter: any = {
+      createdAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    };
+
+    const withdrawalsData = await Withdraw.find<IWithdraw>(withdrawalsFilter).populate('userId', 'firstName lastName');
+
+    const detailedWithdrawals = withdrawalsData.map(withdrawal => ({
+      ...withdrawal.toObject(),
+      user: withdrawal.userId,
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
         totalCash,
         paymentsByMethod,
         payments: detailedPayments, // Devolver los pagos detallados
+        withdrawals: detailedWithdrawals,
       },
     });
   } catch (error) {

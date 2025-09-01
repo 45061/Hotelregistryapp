@@ -14,6 +14,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
+import PaymentsSummaryModal from '@/components/PaymentsSummaryModal';
 
 
 ChartJS.register(
@@ -50,7 +51,9 @@ export default function SalesReportPage() {
   const [paymentStartDate, setPaymentStartDate] = useState(new Date().toISOString().slice(0, 16));
   const [paymentEndDate, setPaymentEndDate] = useState(new Date().toISOString().slice(0, 16));
   const [detailedPayments, setDetailedPayments] = useState<any[]>([]);
+  const [detailedWithdrawals, setDetailedWithdrawals] = useState<any[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -114,6 +117,7 @@ export default function SalesReportPage() {
       const data = await res.json();
       if (data.success) {
         setDetailedPayments(data.data.payments);
+        setDetailedWithdrawals(data.data.withdrawals);
       } else {
         toast.error(data.error || 'Error al cargar los datos de pagos.');
       }
@@ -379,6 +383,14 @@ export default function SalesReportPage() {
             >
               {loadingPayments ? 'Buscando...' : 'Buscar Pagos'}
             </button>
+            {detailedPayments.length > 0 && (
+              <button
+                onClick={() => setIsSummaryModalOpen(true)}
+                className="px-4 py-2 bg-amarillo text-black rounded-md hover:bg-opacity-90 transition-colors duration-200"
+              >
+                Ver Resumen
+              </button>
+            )}
           </div>
 
           {loadingPayments ? (
@@ -410,6 +422,13 @@ export default function SalesReportPage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {isSummaryModalOpen && (
+            <PaymentsSummaryModal
+              payments={detailedPayments}
+              withdrawals={detailedWithdrawals}
+              onClose={() => setIsSummaryModalOpen(false)}
+            />
           )}
         </div>
       </main>

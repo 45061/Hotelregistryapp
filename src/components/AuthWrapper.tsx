@@ -81,12 +81,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
 
         const existingBalance = cashReseivedInThisBox + openBox.initialBalance - cashWithdrawedInThisBox;
 
-        console.log("Sending PUT request to close box with data:", {
-          activeBox: false,
-          lastClosingBalance: existingBalance,
-          lastClosing: new Date().toISOString(),
-          userIdCloseBox: user.id,
-        });
+        
 
         const closeBoxRes = await fetch(`/api/boxes/${openBox._id}`, {
           method: 'PUT',
