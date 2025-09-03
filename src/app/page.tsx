@@ -129,6 +129,7 @@ const paymentMethods = [
   "Link de Pago",
   "Euros",
   "Debe",
+  "Ota Colect",
 ];
 const reservationLocations = [
   "Directo",

@@ -1,0 +1,94 @@
+import { NextRequest, NextResponse } from 'next/server';
+import Payment, { IPayment } from '@/lib/models/payment.model';
+import Withdraw, { IWithdraw } from '@/lib/models/withdraw.model';
+import dbConnect from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import Traveler from '@/lib/models/traveler.model';
+import { FilterQuery } from 'mongoose';
+import User from '@/lib/models/user.model';
+
+export async function GET(req: NextRequest) {
+  const cookieStore = cookies();
+  const token = cookieStore.get('token')?.value;
+
+  if (!token) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+    if (!decoded.isAdmin) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await dbConnect();
+
+    const { searchParams } = new URL(req.url);
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
+    if (!startDate || !endDate) {
+      return NextResponse.json({ success: false, error: 'Please provide a date range' }, { status: 400 });
+    }
+
+    const paymentsFilter: FilterQuery<IPayment> = {
+      createdAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    };
+
+    const paymentsFound = await (Payment.find as any)(paymentsFilter);
+    const paymentsData = await User.populate(paymentsFound, { path: 'userId', select: 'firstName lastName' });
+
+    const detailedPayments = await Promise.all(
+      paymentsData.map(async (payment: any) => {
+        const traveler = await Traveler.findOne({ roomNumber: payment.roomId });
+        return {
+          ...payment.toObject(),
+          user: payment.userId,
+          traveler: traveler ? { roomNumber: traveler.roomNumber, headquarters: traveler.headquarters } : null,
+        };
+      })
+    );
+
+    const totalCash = paymentsData.reduce((acc: number, payment: any) => acc + payment.cash, 0);
+
+    const paymentsByMethod = {} as Record<string, number>;
+    paymentsData.forEach((payment: any) => {
+      paymentsByMethod[payment.typePayment] = (paymentsByMethod[payment.typePayment] || 0) + payment.cash;
+    });
+
+    const withdrawalsFilter: FilterQuery<IWithdraw> = {
+      createdAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    };
+
+    const withdrawalsFound = await (Withdraw.find as any)(withdrawalsFilter);
+    const withdrawalsData = await User.populate(withdrawalsFound, { path: 'userId', select: 'firstName lastName' });
+
+    const detailedWithdrawals = withdrawalsData.map((withdrawal: any) => ({
+      ...withdrawal.toObject(),
+      user: withdrawal.userId,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        totalCash,
+        paymentsByMethod,
+        payments: detailedPayments,
+        withdrawals: detailedWithdrawals,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching payments data:', error);
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+    }
+    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+  }
+}

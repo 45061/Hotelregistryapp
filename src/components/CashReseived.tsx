@@ -122,6 +122,10 @@ function CashReseived({ dataRoom, boxId, onPaymentSuccess }) {
               value: "AirBnb",
               label: "AirBnb",
             },
+            {
+              value: "OtaColect",
+              label: "Ota Colect",
+            },
           ]}
         />
         <Select
@@ -132,10 +136,10 @@ function CashReseived({ dataRoom, boxId, onPaymentSuccess }) {
           onChange={setRoom}
           label="Habitacion del pago"
           placeholder="Habitación"
-          data={Object.keys(dataRoom).map((roomNumber) => ({
+          data={[{ value: "000", label: "Oporto 83" }, ...Object.keys(dataRoom).map((roomNumber) => ({
             value: roomNumber,
             label: roomNumber,
-          }))}
+          }))]}
         />
         <Select
           required
