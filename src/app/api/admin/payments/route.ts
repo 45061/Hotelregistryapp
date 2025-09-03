@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    const paymentsData = await Payment.find<IPayment>(paymentsFilter).populate('userId', 'firstName lastName');
+    const paymentsData = await Payment.find(paymentsFilter).populate('userId', 'firstName lastName');
 
     const detailedPayments = await Promise.all(
       paymentsData.map(async (payment) => {
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    const withdrawalsData = await Withdraw.find<IWithdraw>(withdrawalsFilter).populate('userId', 'firstName lastName');
+    const withdrawalsData = await Withdraw.find(withdrawalsFilter).populate('userId', 'firstName lastName');
 
     const detailedWithdrawals = withdrawalsData.map(withdrawal => ({
       ...withdrawal.toObject(),
