@@ -5,6 +5,8 @@ import dbConnect from '@/lib/db';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import Traveler from '@/lib/models/traveler.model';
+import { FilterQuery } from 'mongoose';
+import User from '@/lib/models/user.model';
 
 export async function GET(req: NextRequest) {
   const cookieStore = cookies();
@@ -30,43 +32,45 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Please provide a date range' }, { status: 400 });
     }
 
-    const paymentsFilter: any = {
+    const paymentsFilter: FilterQuery<IPayment> = {
       createdAt: {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       },
     };
 
-    const paymentsData = await Payment.find(paymentsFilter).populate('userId', 'firstName lastName');
+    const paymentsFound = await (Payment.find as any)(paymentsFilter);
+    const paymentsData = await User.populate(paymentsFound, { path: 'userId', select: 'firstName lastName' });
 
     const detailedPayments = await Promise.all(
-      paymentsData.map(async (payment) => {
+      paymentsData.map(async (payment: any) => {
         const traveler = await Traveler.findOne({ roomNumber: payment.roomId });
         return {
           ...payment.toObject(),
-          user: payment.userId, // Rename userId to user
+          user: payment.userId,
           traveler: traveler ? { roomNumber: traveler.roomNumber, headquarters: traveler.headquarters } : null,
         };
       })
     );
 
-    const totalCash = paymentsData.reduce((acc, payment) => acc + payment.cash, 0);
+    const totalCash = paymentsData.reduce((acc: number, payment: any) => acc + payment.cash, 0);
 
     const paymentsByMethod = {} as Record<string, number>;
-    paymentsData.forEach(payment => {
+    paymentsData.forEach((payment: any) => {
       paymentsByMethod[payment.typePayment] = (paymentsByMethod[payment.typePayment] || 0) + payment.cash;
     });
 
-    const withdrawalsFilter: any = {
+    const withdrawalsFilter: FilterQuery<IWithdraw> = {
       createdAt: {
         $gte: new Date(startDate),
         $lte: new Date(endDate),
       },
     };
 
-    const withdrawalsData = await Withdraw.find(withdrawalsFilter).populate('userId', 'firstName lastName');
+    const withdrawalsFound = await (Withdraw.find as any)(withdrawalsFilter);
+    const withdrawalsData = await User.populate(withdrawalsFound, { path: 'userId', select: 'firstName lastName' });
 
-    const detailedWithdrawals = withdrawalsData.map(withdrawal => ({
+    const detailedWithdrawals = withdrawalsData.map((withdrawal: any) => ({
       ...withdrawal.toObject(),
       user: withdrawal.userId,
     }));
@@ -76,7 +80,7 @@ export async function GET(req: NextRequest) {
       data: {
         totalCash,
         paymentsByMethod,
-        payments: detailedPayments, // Devolver los pagos detallados
+        payments: detailedPayments,
         withdrawals: detailedWithdrawals,
       },
     });
