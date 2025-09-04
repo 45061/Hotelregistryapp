@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import PDFDocument from 'pdfkit';
 import nodemailer from 'nodemailer';
 import { format } from 'date-fns-tz';
@@ -45,6 +46,7 @@ const drawTable = (doc: PDFKit.PDFDocument, startY: number, headers: string[], d
 const generateReportPdf = (reportData: any): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50 });
+
     const buffers: any[] = [];
 
     doc.on('data', buffers.push.bind(buffers));
