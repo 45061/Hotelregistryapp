@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "mkdir -p .next/server/app/api/admin/send-report/data && cp node_modules/pdfkit/js/data/*.afm .next/server/app/api/admin/send-report/data/",
+    "postbuild": "mkdir -p .next/server/app/api/admin/send-report/data && cp -R node_modules/pdfkit/js/data .next/server/app/api/admin/send-report/",
     "start": "next start",
     "lint": "next lint"
   },

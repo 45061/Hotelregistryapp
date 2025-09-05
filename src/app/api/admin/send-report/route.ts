@@ -149,7 +149,6 @@ const sendEmailWithAttachment = async (pdfBuffer: Buffer, reportData: any) => {
 };
 
 export async function GET(req: NextRequest) {
-  console.log('send-report route handler started');
   console.log('Generating and sending daily report...');
 
   try {
@@ -219,7 +218,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, message: `Report for ${reportData.reportDate} sent successfully.` });
 
   } catch (error) {
-    console.error('Error in send-report route handler:', error);
     console.error('Error generating or sending daily report:', error);
     return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
