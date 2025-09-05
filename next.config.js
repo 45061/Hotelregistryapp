@@ -11,16 +11,11 @@ const nextConfig = {
           patterns: [
             {
               from: path.resolve(__dirname, 'node_modules/pdfkit/js/data'),
-              to: path.resolve(__dirname, '.next/server/vendor-chunks/data'),
+              to: path.resolve(__dirname, '.next/server/app/api/admin/send-report/data'),
             },
           ],
         })
       );
-
-      // Esto es necesario para que pdfkit pueda encontrar los archivos en la nueva ubicación
-      config.externals.push({
-        './data': `require('./data')`,
-      });
     }
 
     return config;
