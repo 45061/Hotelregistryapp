@@ -152,6 +152,12 @@ export async function GET(req: NextRequest) {
   console.log('Generating and sending daily report...');
 
   try {
+    console.log('--- Debugging Email Environment Variables ---');
+    console.log('EMAIL_HOST:', process.env.EMAIL_HOST);
+    console.log('EMAIL_PORT:', process.env.EMAIL_PORT);
+    console.log('EMAIL_USER:', process.env.EMAIL_USER);
+    console.log('EMAIL_PASS is set:', !!process.env.EMAIL_PASS);
+    console.log('-------------------------------------------');
     await dbConnect();
     
     const timeZone = 'America/Bogota';
