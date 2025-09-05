@@ -45,7 +45,7 @@ export default function PaymentsSummaryModal({ payments, withdrawals, onClose }:
 
   const totalExpenses = useMemo(() => {
     return withdrawals.reduce((acc, withdrawal) => acc + withdrawal.cash, 0);
-  }, [withdrawals]);
+  }, [withdrawals])
 
   const sortedPayments = useMemo(() => {
     const conceptOrder = {
