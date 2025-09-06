@@ -23,9 +23,9 @@ const RoomStateModal: React.FC<RoomStateModalProps> = ({ isOpen, onClose, room, 
   const roomStates = [
     { value: 'Disponible', label: 'Disponible' },
     { value: 'Ocupada', label: 'Ocupada' },
-    { value: 'Limpieza', label: 'Limpieza' },
-    { value: 'Mantenimiento', label: 'Mantenimiento' },
-    { value: 'Reservada', label: 'Reservada' },
+    { value: 'CheckOut', label: 'CheckOut' },
+    { value: 'Repaso', label: 'Repaso' },
+    { value: 'Revisar', label: 'Revisar' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

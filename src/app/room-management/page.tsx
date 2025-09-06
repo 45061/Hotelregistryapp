@@ -98,12 +98,12 @@ export default function RoomManagementPage() {
         return 'bg-[#E6F4EA] border-[#1E6C46]'; // Verde principal
       case 'Ocupada':
         return 'bg-red-100 border-red-500';
-      case 'Limpieza':
-        return 'bg-blue-100 border-blue-500';
-      case 'Mantenimiento':
-        return 'bg-orange-100 border-orange-500';
-      case 'Reservada':
-        return 'bg-[#FFFBE6] border-[#FFE600]'; // Amarillo
+      case 'CheckOut':
+        return 'bg-blue-100 border-blue-500'; // Tono naranja para CheckOut
+      case 'Repaso':
+        return  'bg-orange-100 border-orange-500';
+      case 'Revisar':
+        return 'bg-purple-100 border-purple-500'; // Tono púrpura para Revisar
       default:
         return 'bg-gray-100 border-gray-300';
     }
