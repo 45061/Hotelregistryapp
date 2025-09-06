@@ -14,6 +14,7 @@ interface UserData {
   isAdmin: boolean;
   isSuperUser: boolean;
   authorized: boolean;
+  isWaitress: boolean; // Added
 }
 
 export default function AdminUsersPage() {
@@ -72,7 +73,7 @@ export default function AdminUsersPage() {
 
   const handleToggleProperty = async (
     userId: string,
-    property: "isAdmin" | "authorized",
+    property: "isAdmin" | "authorized" | "isWaitress", // Added "isWaitress"
     currentValue: boolean
   ) => {
     try {
@@ -140,6 +141,7 @@ export default function AdminUsersPage() {
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Admin</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">SuperAdmin</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Autorizado</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Mesero(a)</th> {/* Added */}
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
@@ -170,6 +172,14 @@ export default function AdminUsersPage() {
                         type="checkbox"
                         checked={user.authorized}
                         onChange={() => handleToggleProperty(user._id, "authorized", user.authorized)}
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                      />
+                    </td>
+                    <td className="py-2 px-4 border-b border-gray-200 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={user.isWaitress}
+                        onChange={() => handleToggleProperty(user._id, "isWaitress", user.isWaitress)}
                         className="form-checkbox h-5 w-5 text-blue-600"
                       />
                     </td>

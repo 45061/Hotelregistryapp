@@ -12,6 +12,7 @@ interface UserData {
   isAdmin: boolean;
   authorized: boolean;
   isSuperUser: boolean;
+  isWaitress: boolean; // Added
 }
 
 export default function RoomManagementPage() {
@@ -33,7 +34,7 @@ export default function RoomManagementPage() {
           const data = await res.json();
           if (data.success) {
             setUser(data.data);
-            if (!data.data.authorized) {
+            if (!data.data.authorized && !data.data.isWaitress) { // Added isWaitress check
               router.push('/unauthorized');
             }
           } else {
@@ -74,7 +75,7 @@ export default function RoomManagementPage() {
   };
 
   useEffect(() => {
-    if (user && user.authorized) {
+    if (user && (user.authorized || user.isWaitress)) { // Added isWaitress check
       fetchRoomsData(); // Call the new function
     }
   }, [user]);
@@ -83,7 +84,7 @@ export default function RoomManagementPage() {
     return <div className="flex justify-center items-center min-h-screen">Cargando...</div>;
   }
 
-  if (!user || !user.authorized) {
+  if (!user || (!user.authorized && !user.isWaitress)) { // Added isWaitress check
     return null; // Should be redirected by router.push
   }
 

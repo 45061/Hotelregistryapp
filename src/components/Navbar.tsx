@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
+interface UserPropData {
+  authorized: boolean;
+  isWaitress: boolean;
+  isAdmin: boolean;
+  isSuperUser: boolean;
+  // Add other user properties if they are used in Navbar and need typing
+}
+
 interface NavbarProps {
-  user: any;
+  user: UserPropData | null; // Changed to UserPropData
   onLogout: () => Promise<void>;
   loading: boolean;
 }
@@ -27,7 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
           </h1>
         </Link>
       </div>
-      {user && user.authorized && (
+      {user && (user.authorized || user.isWaitress) && ( // Added user.isWaitress
         <nav className="relative">
           <button
             onClick={toggleDropdown}
@@ -40,13 +48,15 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
               isDropdownOpen ? "block" : "hidden"
             }`}
           >
-            <Link
-              href="/"
-              className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-              onClick={closeDropdown}
-            >
-              Traveler Registry
-            </Link>
+            {!user.isWaitress && ( // Added condition
+              <Link
+                href="/"
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                onClick={closeDropdown}
+              >
+                Traveler Registry
+              </Link>
+            )}
             {user.isSuperUser && (
               <Link
                 href="/admin/users"
@@ -74,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
                 Gestión de Cajas
               </Link>
             )}
-            {user.authorized && (
+            {(user.authorized || user.isWaitress) && (
               <Link
                 href="/room-management"
                 className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -86,7 +96,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
           </div>
         </nav>
       )}
-      {user && user.authorized && (
+      {user && (user.authorized || user.isWaitress) && ( // Added user.isWaitress
         <button
           onClick={onLogout}
           disabled={loading}
