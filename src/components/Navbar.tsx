@@ -74,6 +74,15 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
                 Gestión de Cajas
               </Link>
             )}
+            {user.authorized && (
+              <Link
+                href="/room-management"
+                className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                onClick={closeDropdown}
+              >
+                Room Management
+              </Link>
+            )}
           </div>
         </nav>
       )}

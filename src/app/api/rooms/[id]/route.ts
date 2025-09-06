@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import dbConnect from '@/lib/db';
-import Room from '@/lib/models/room.model';
+import mongoose from 'mongoose';
+import Room, { IRoom } from '@/lib/models/room.model';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   await dbConnect();
@@ -11,7 +12,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const body = await req.json();
         const { roomNumber, hotel, price, supplies, roomType, state } = body;
 
-    const updatedRoom = await Room.findByIdAndUpdate(
+    const updatedRoom = await (Room as mongoose.Model<IRoom>).findByIdAndUpdate(
       id,
       { roomNumber, hotel, price, supplies, roomType, state },
       { new: true, runValidators: true }

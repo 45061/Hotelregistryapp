@@ -122,12 +122,14 @@ export default function RoomManagementPage() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4 text-verde-principal">Gestión de Habitaciones</h1>
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="bg-verde-principal hover:bg-verde-oscuro text-white font-bold py-2 px-4 rounded mb-4"
-      >
-        Crear Habitación
-      </button>
+      {user && user.isAdmin && (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-verde-principal hover:bg-verde-oscuro text-white font-bold py-2 px-4 rounded mb-4"
+        >
+          Crear Habitación
+        </button>
+      )}
 
       <div className="flex flex-col sm:flex-row flex-wrap -mx-2 gap-y-8 sm:gap-x-8">
         <div className="flex-1 px-2">
