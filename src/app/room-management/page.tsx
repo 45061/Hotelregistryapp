@@ -129,9 +129,9 @@ export default function RoomManagementPage() {
         Crear Habitación
       </button>
 
-      <div className="flex flex-wrap -mx-2">
-        <div className="w-full md:w-1/2 px-2 mb-4">
-          <h2 className="text-xl font-semibold mb-2 text-verde-principal">Oporto 83</h2>
+      <div className="flex flex-col sm:flex-row flex-wrap -mx-2 gap-y-8 sm:gap-x-8">
+        <div className="flex-1 px-2">
+          <h2 className="text-3xl font-bold mb-4 text-verde-principal text-center">Oporto 83</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {roomsOporto.map((room: any) => (
               <Card
@@ -160,8 +160,8 @@ export default function RoomManagementPage() {
             ))}
           </div>
         </div>
-        <div className="w-full md:w-1/2 px-2 mb-4">
-          <h2 className="text-xl font-semibold mb-2 text-verde-principal">Natural Sevgi</h2>
+        <div className="flex-1 px-2">
+          <h2 className="text-3xl font-bold mb-4 text-verde-principal text-center">Natural Sevgi</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {roomsNatural.map((room: any) => (
               <Card
