@@ -1,6 +1,18 @@
 
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, { Schema, models, Document } from "mongoose";
 import bcrypt from 'bcryptjs';
+
+export interface IUser extends Document {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  password?: string; // Password might not always be selected
+  isAdmin: boolean;
+  isSuperUser: boolean;
+  authorized: boolean;
+  isWaitress: boolean;
+}
 
 const userSchema = new Schema({
   email: {
@@ -39,6 +51,10 @@ const userSchema = new Schema({
     default: false,
   },
   authorized: {
+    type: Boolean,
+    default: false,
+  },
+  isWaitress: {
     type: Boolean,
     default: false,
   },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import User from "@/lib/models/user.model";
+import mongoose from 'mongoose';
+import User, { IUser } from "@/lib/models/user.model";
 import jwt from "jsonwebtoken";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -22,11 +23,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     const body = await req.json();
-    const { authorized, isAdmin } = body;
+    const { authorized, isAdmin, isWaitress } = body; // Added isWaitress
 
-    const updatedUser = await (User as any).findByIdAndUpdate(
+    const updatedUser = await (User as mongoose.Model<IUser>).findByIdAndUpdate( // Added mongoose.Model<IUser> cast
       id,
-      { authorized, isAdmin },
+      { authorized, isAdmin, isWaitress }, // Added isWaitress
       { new: true, runValidators: true }
     );
 
