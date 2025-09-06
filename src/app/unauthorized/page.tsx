@@ -1,11 +1,37 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react'; // Added useEffect
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
+// Define UserData interface to get isWaitress property
+interface UserData {
+  id: string;
+  isAdmin: boolean;
+  authorized: boolean;
+  isSuperUser: boolean;
+  isWaitress: boolean;
+}
+
 const UnauthorizedPage = () => {
   const router = useRouter();
+
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data.isWaitress) {
+            router.push('/room-management');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking user status:', error);
+      }
+    };
+    checkUserStatus();
+  }, [router]);
 
   const handleLoginRedirect = async () => {
     try {
