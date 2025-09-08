@@ -99,8 +99,10 @@ export default function RoomManagementPage() {
         return 'bg-[#E6F4EA] border-[#1E6C46]'; // Verde principal
       case 'Ocupada':
         return 'bg-red-100 border-red-500';
-      case 'CheckOut':
-        return 'bg-blue-100 border-blue-500'; // Tono naranja para CheckOut
+      case 'CheckOut Ya Salio':
+        return 'bg-blue-400 border-blue-500';
+      case 'CheckOut no ha Salido':
+        return 'bg-blue-100 border-blue-800';
       case 'Repaso':
         return  'bg-orange-100 border-orange-500';
       case 'Revisar':

@@ -23,7 +23,8 @@ const RoomStateModal: React.FC<RoomStateModalProps> = ({ isOpen, onClose, room, 
   const roomStates = [
     { value: 'Disponible', label: 'Disponible' },
     { value: 'Ocupada', label: 'Ocupada' },
-    { value: 'CheckOut', label: 'CheckOut' },
+    { value: 'CheckOut Ya Salio', label: 'CheckOut Ya Salio' },
+    { value: 'CheckOut no ha Salido', label: 'CheckOut no ha Salido' },
     { value: 'Repaso', label: 'Repaso' },
     { value: 'Revisar', label: 'Revisar' },
   ];
