@@ -10,11 +10,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
     const body = await req.json();
-        const { roomNumber, hotel, price, supplies, roomType, state } = body;
+        const { roomNumber, hotel, price, supplies, roomType, state, towels } = body;
 
     const updatedRoom = await (Room as mongoose.Model<IRoom>).findByIdAndUpdate(
       id,
-      { roomNumber, hotel, price, supplies, roomType, state },
+      { roomNumber, hotel, price, supplies, roomType, state, towels },
       { new: true, runValidators: true }
     );
 

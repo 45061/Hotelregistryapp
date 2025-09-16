@@ -158,8 +158,13 @@ export default function RoomManagementPage() {
                 <Text size="sm" c="dimmed">
                   Tipo: {room.roomType}
                 </Text>
+                {user?.authorized && (
+                  <Text size="sm" c="dimmed">
+                    Precio: ${room.price}
+                  </Text>
+                )}
                 <Text size="sm" c="dimmed">
-                  Precio: ${room.price}
+                  Toallas: {room.towels}
                 </Text>
               </Card>
             ))}
@@ -188,8 +193,13 @@ export default function RoomManagementPage() {
                 <Text size="sm" c="dimmed">
                   Tipo: {room.roomType}
                 </Text>
+                {user?.authorized && (
+                  <Text size="sm" c="dimmed">
+                    Precio: ${room.price}
+                  </Text>
+                )}
                 <Text size="sm" c="dimmed">
-                  Precio: ${room.price}
+                  Toallas: {room.towels}
                 </Text>
               </Card>
             ))}

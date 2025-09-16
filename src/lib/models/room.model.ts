@@ -14,6 +14,7 @@ export interface IRoom extends Document {
   state: string; // Added
   traveler: mongoose.Types.ObjectId | null; // Added
   roomType: string; // Added
+  towels: number;
 }
 
 const RoomSchema: Schema = new Schema({
@@ -30,6 +31,7 @@ const RoomSchema: Schema = new Schema({
   state: { type: String, default: 'available' }, // Added
   traveler: { type: mongoose.Schema.Types.ObjectId, ref: 'Traveler', default: null }, // Added
   roomType: { type: String, required: true }, // Added
+  towels: { type: Number, default: 0 },
 });
 
 const Room = mongoose.models.Room || mongoose.model<IRoom>('Room', RoomSchema);
