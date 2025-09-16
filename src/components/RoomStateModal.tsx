@@ -12,11 +12,13 @@ interface RoomStateModalProps {
 
 const RoomStateModal: React.FC<RoomStateModalProps> = ({ isOpen, onClose, room, onStateUpdated }) => {
   const [selectedState, setSelectedState] = useState(room?.state || '');
+  const [towels, setTowels] = useState(room?.towels || 0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (room) {
       setSelectedState(room.state);
+      setTowels(room.towels || 0);
     }
   }, [room]);
 
@@ -39,7 +41,7 @@ const RoomStateModal: React.FC<RoomStateModalProps> = ({ isOpen, onClose, room, 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ state: selectedState }),
+        body: JSON.stringify({ state: selectedState, towels }),
       });
 
       const data = await res.json();
@@ -94,6 +96,18 @@ const RoomStateModal: React.FC<RoomStateModalProps> = ({ isOpen, onClose, room, 
                 </option>
               ))}
             </select>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="towels" className="block text-verde-oscuro text-sm font-bold mb-2">
+              Toallas:
+            </label>
+            <input
+              type="number"
+              id="towels"
+              className="shadow appearance-none border border-verde-principal rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-verde-principal"
+              value={towels}
+              onChange={(e) => setTowels(Number(e.target.value))}
+            />
           </div>
           <div className="flex justify-end">
             <button
