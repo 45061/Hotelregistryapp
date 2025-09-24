@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import AtamsaLogo from "@/components/AtamsaLogo";
-import Navbar from "@/components/Navbar";
 
 interface TravelerRecord {
   _id: string;
@@ -102,21 +100,6 @@ export default function TravelerDetailsPage() {
     }
   }, [id, loadingUser, user]);
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/auth/logout", {
-        method: "POST",
-      });
-      if (res.ok) {
-        router.push("/unauthorized");
-      } else {
-        toast.error("Error al cerrar sesión.");
-      }
-    } catch (error) {
-      toast.error("Ocurrió un error durante el cierre de sesión.");
-    }
-  };
-
   if (loadingUser || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -139,8 +122,6 @@ export default function TravelerDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
-      <Navbar user={user} onLogout={handleLogout} loading={loadingUser} />
-
       <main className="p-8">
         <div className="p-6 bg-white rounded-lg shadow-md border border-gray-200">
           <h2 className="mb-6 text-3xl font-heading text-verde-principal text-center">

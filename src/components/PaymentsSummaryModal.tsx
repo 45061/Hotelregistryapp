@@ -151,6 +151,63 @@ export default function PaymentsSummaryModal({ payments, withdrawals, onClose }:
     doc.save("resumen_movimientos.pdf");
   };
 
+  const generateCsv = () => {
+    const escapeCsvCell = (cell: any) => {
+        if (cell === undefined || cell === null) {
+            return '';
+        }
+        const str = String(cell);
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    };
+
+    const toCsv = (headers: string[], data: any[][]) => {
+        const head = headers.map(h => escapeCsvCell(h)).join(',') + '\n';
+        const body = data.map(row => row.map(cell => escapeCsvCell(cell)).join(',') + '\n').join('');
+        return head + body;
+    };
+
+    let csvContent = "";
+
+    csvContent += "Ingresos\n";
+    const paymentsHeaders = ["Usuario", "Habitación", "Medio de pago", "Concepto", "Valor"];
+    const paymentsData = sortedPayments.map(p => [p.user.firstName, p.traveler?.roomNumber || 'N/A', p.typePayment, p.reasonOfPay, p.cash]);
+    csvContent += toCsv(paymentsHeaders, paymentsData);
+    csvContent += `Total Ingresos,,,,${totalIncome}\n\n`;
+
+    csvContent += "Egresos\n";
+    const withdrawalsHeaders = ["Usuario", "Concepto", "Medio de pago", "Valor"];
+    const withdrawalsData = withdrawals.map(w => [w.user.firstName, w.concept, 'Efectivo', w.cash]);
+    csvContent += toCsv(withdrawalsHeaders, withdrawalsData);
+    csvContent += `Total Egresos,,,${totalExpenses}\n\n`;
+
+    csvContent += "Resumen por Medio de Pago\n";
+    const paymentMethodHeaders = ["Medio de Pago", "Total"];
+    const paymentMethodData = Object.entries(paymentMethodSummary);
+    csvContent += toCsv(paymentMethodHeaders, paymentMethodData);
+    csvContent += "\n";
+
+    csvContent += "Resumen por Usuario\n";
+    Object.entries(userIncomeSummary).forEach(([userName, summary]) => {
+        csvContent += `${escapeCsvCell(userName)},Total,${escapeCsvCell(summary.total)}\n`;
+        Object.entries(summary.payments).forEach(([method, total]) => {
+            csvContent += `,${escapeCsvCell(method)},${escapeCsvCell(total)}\n`;
+        });
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "resumen_movimientos.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
       <div className="bg-white p-6 rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto space-y-6">
@@ -158,6 +215,7 @@ export default function PaymentsSummaryModal({ payments, withdrawals, onClose }:
           <h1 className="text-2xl font-bold">Resumen de Movimientos</h1>
           <div>
             <button onClick={generatePdf} className="mr-4 px-4 py-2 bg-blue-500 text-white rounded-md">Generar PDF</button>
+            <button onClick={generateCsv} className="mr-4 px-4 py-2 bg-green-500 text-white rounded-md">Descargar CSV</button>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
           </div>
         </div>
