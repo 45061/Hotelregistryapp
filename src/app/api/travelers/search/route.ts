@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const travelers = await (Traveler as any).find({ idNumber }).sort({ createdAt: -1, _id: -1 }).lean();
+    const travelers = await (Traveler as any).find({ idNumber }).select('-companions').sort({ createdAt: -1, _id: -1 }).lean();
 
     const traveler = travelers[0]; // Get the most recent one
 
