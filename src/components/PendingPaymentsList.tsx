@@ -1,18 +1,11 @@
-
 import React from 'react';
 
-interface Traveler {
-  _id?: string;
-  name: string;
-  roomNumber: string;
-  amountPaid: number;
-}
-
 interface Props {
-  travelers: Traveler[];
+  travelers: TravelerRecord[];
+  onEdit: (traveler: TravelerRecord) => void;
 }
 
-const PendingPaymentsList: React.FC<Props> = ({ travelers }) => {
+const PendingPaymentsList: React.FC<Props> = ({ travelers, onEdit }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -31,6 +24,7 @@ const PendingPaymentsList: React.FC<Props> = ({ travelers }) => {
               <th className="py-3 px-4 text-left text-sm font-bold uppercase tracking-wider">Nombre</th>
               <th className="py-3 px-4 text-left text-sm font-bold uppercase tracking-wider">Habitación</th>
               <th className="py-3 px-4 text-left text-sm font-bold uppercase tracking-wider">Monto que Adeuda</th>
+              <th className="py-3 px-4 text-left text-sm font-bold uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -39,6 +33,14 @@ const PendingPaymentsList: React.FC<Props> = ({ travelers }) => {
                 <td className="py-3 px-4 whitespace-nowrap">{traveler.name}</td>
                 <td className="py-3 px-4 whitespace-nowrap">{traveler.roomNumber}</td>
                 <td className="py-3 px-4 whitespace-nowrap">{formatCurrency(traveler.amountPaid)}</td>
+                <td className="py-3 px-4 whitespace-nowrap">
+                  <button
+                    onClick={() => onEdit(traveler)}
+                    className="px-3 py-1 bg-verde-principal text-white rounded-md hover:bg-opacity-90 text-xs"
+                  >
+                    Editar
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

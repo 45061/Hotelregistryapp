@@ -427,29 +427,14 @@ export default function HomePage() {
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const getFieldValue = (
-    record: TravelerRecord,
-    field: keyof TravelerRecord
-  ) => {
-    if (field === "date" || field === "arrivalTime") {
-      return record[field]
-        ? formatInTimeZone(
-            new Date(record[field]),
-            "America/Bogota",
-            field === "date" ? "yyyy-MM-dd" : "HH:mm"
-          )
-        : "";
-    }
-    if (typeof record[field] === "boolean") {
-      return record[field] ? "Yes" : "No";
-    }
-    if (field === "companions") {
-      return record[field] && record[field].length > 0
-        ? record[field].map((c: any) => c.name).join(", ")
-        : "N/A";
-    }
-    return record[field];
-  };
+  const pendingPayments = useMemo(
+    () =>
+      records.filter(
+        (r): r is TravelerRecord & { _id: string } =>
+          r.paymentMethod === "Debe" && !!r._id
+      ),
+    [records]
+  );
 
   if (loadingUser) {
     return (
@@ -675,13 +660,18 @@ export default function HomePage() {
             onClick={() => setShowPending(!showPending)}
             className="px-6 py-2 bg-yellow-400 text-black rounded-md hover:bg-yellow-500 transition-colors duration-200 font-semibold"
           >
-            {showPending ? "Ocultar Pagos Pendientes" : "Mostrar Pagos Pendientes"}
+            {showPending
+              ? "Ocultar Pagos Pendientes"
+              : "Mostrar Pagos Pendientes"}
           </button>
         </div>
 
         {showPending && (
           <div className="mb-8">
-            <PendingPaymentsList travelers={records.filter(r => r.paymentMethod === 'Debe')} />
+            <PendingPaymentsList
+              travelers={pendingPayments}
+              onEdit={handleEdit}
+            />
           </div>
         )}
 
