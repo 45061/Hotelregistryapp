@@ -9,7 +9,12 @@ import jwt from "jsonwebtoken";
   await dbConnect();
 
   try {
-    const records = await (TravelerRecord as any).find({}).populate("user", "firstName lastName");
+    const fortyDaysAgo = new Date();
+    fortyDaysAgo.setDate(fortyDaysAgo.getDate() - 40);
+
+    const records = await (TravelerRecord as any)
+      .find({ date: { $gte: fortyDaysAgo } })
+      .populate("user", "firstName lastName");
     return NextResponse.json({ success: true, data: records }, { status: 200 });
   } catch (error) {
     console.error("API Error (GET /api/travelers):", error);
