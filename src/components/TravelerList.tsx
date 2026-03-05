@@ -114,19 +114,16 @@ const getFieldValue = (record: Traveler, field: keyof Traveler) => {
 };
 
 interface TravelerListProps {
-  refreshTrigger: number;
+  travelers: Traveler[];
   onEdit: (traveler: Traveler) => void;
   isAdmin: boolean;
 }
 
 const TravelerList: React.FC<TravelerListProps> = ({ 
-  refreshTrigger,
+  travelers,
   onEdit,
   isAdmin,
 }) => {
-  const [travelers, setTravelers] = useState<Traveler[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 8;
 
@@ -143,14 +140,13 @@ const TravelerList: React.FC<TravelerListProps> = ({
         }
         const data = await response.json();
         if (data.success) {
-          setTravelers(travelers.filter((traveler) => traveler._id !== id));
           alert("Registro eliminado con éxito.");
           router.refresh(); // Refresh the page to reflect changes
         } else {
-          setError(data.error || "Error al eliminar el registro.");
+          alert(data.error || "Error al eliminar el registro.");
         }
       } catch (err: any) {
-        setError(err.message);
+        alert(err.message);
       }
     }
   };
@@ -185,46 +181,6 @@ const TravelerList: React.FC<TravelerListProps> = ({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
-  useEffect(() => {
-    const fetchTravelers = async () => {
-      try {
-        const response = await fetch("/api/travelers");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data.success) {
-          // Sort records by date (descending) and then by _id (descending) for consistent order
-          const sortedRecords = data.data.sort((a: Traveler, b: Traveler) => {
-            const dateA = new Date(a.date).getTime();
-            const dateB = new Date(b.date).getTime();
-            if (dateA !== dateB) {
-              return dateB - dateA; // Sort by date descending
-            }
-            return b._id.localeCompare(a._id); // Sort by _id descending for stable sort
-          });
-          setTravelers(sortedRecords);
-        } else {
-          setError(data.error || "Error al cargar viajeros");
-        }
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTravelers();
-  }, [refreshTrigger]);
-
-  if (loading) {
-    return <div className="text-center py-4">Cargando viajeros...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-4 text-red-500">Error: {error}</div>;
-  }
 
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;

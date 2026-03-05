@@ -676,7 +676,7 @@ export default function HomePage() {
         )}
 
         <TravelerList
-          refreshTrigger={refreshList}
+          travelers={records as any}
           onEdit={handleEdit}
           isAdmin={user?.isAdmin}
         />

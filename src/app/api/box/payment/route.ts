@@ -83,9 +83,22 @@ export async function GET(request: NextRequest) {
 
     jwt.verify(token, SECRET as string);
 
-    const payment = await (Payment as any).find()
+    const { searchParams } = new URL(request.url);
+    const boxId = searchParams.get("boxId");
+
+    const fortyDaysAgo = new Date();
+    fortyDaysAgo.setDate(fortyDaysAgo.getDate() - 40);
+
+    const query: any = {
+      createdAt: { $gte: fortyDaysAgo }
+    };
+
+    if (boxId) {
+      query.boxId = boxId;
+    }
+
+    const payment = await (Payment as any).find(query)
       .populate("userId", "firstName")
-      // .populate("roomId", "roomNumer") // Removed
       .populate({
         path: "boxId",
       });
