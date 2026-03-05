@@ -102,7 +102,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
       fetchBox();
 
       const fetchPayment = async () => {
-        await fetch("/api/box/payment", {
+        await fetch(`/api/box/payment?boxId=${thisIsTheBox}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -118,7 +118,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
       fetchPayment();
 
       const fetchWithdraw = async () => {
-        await fetch("/api/box/withdraw", {
+        await fetch(`/api/box/withdraw?boxId=${thisIsTheBox}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
