@@ -151,35 +151,50 @@ const TravelerList: React.FC<TravelerListProps> = ({
     }
   };
 
-  const handleDownloadCSV = () => {
-    const fields = allTableFields.filter(
-      (field): field is keyof Traveler => field !== "actions"
-    );
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await fetch("/api/travelers?days=60");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || "Error al obtener datos para el CSV");
+      }
 
-    const header = fields
-      .map((field) => fieldLabels[field as keyof typeof fieldLabels] || field)
-      .join(",");
+      const travelers60Days = data.data;
 
-    const rows = travelers.map((traveler) =>
-      fields
-        .map((field) => {
-          const raw = getFieldValue(traveler, field);
-          const value = raw !== undefined && raw !== null ? String(raw) : "";
-          return `"${value.replace(/"/g, '""')}"`;
-        })
-        .join(",")
-    );
+      const fields = allTableFields.filter(
+        (field): field is keyof Traveler => field !== "actions"
+      );
 
-    const csvContent = [header, ...rows].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "reservas.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+      const header = fields
+        .map((field) => fieldLabels[field as keyof typeof fieldLabels] || field)
+        .join(",");
+
+      const rows = travelers60Days.map((traveler: Traveler) =>
+        fields
+          .map((field) => {
+            const raw = getFieldValue(traveler, field);
+            const value = raw !== undefined && raw !== null ? String(raw) : "";
+            return `"${value.replace(/"/g, '""')}"`;
+          })
+          .join(",")
+      );
+
+      const csvContent = [header, ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "reservas_60_dias.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(`Error al descargar el CSV: ${err.message}`);
+    }
   };
 
   // Pagination logic

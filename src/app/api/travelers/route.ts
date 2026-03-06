@@ -5,18 +5,21 @@ import TravelerRecord from "@/lib/models/traveler.model";
 import jwt from "jsonwebtoken";
 
 
-  export async function GET(req) {
+export async function GET(req: NextRequest) {
   await dbConnect();
 
   try {
-    const fortyDaysAgo = new Date();
-    fortyDaysAgo.setDate(fortyDaysAgo.getDate() - 40);
+    const { searchParams } = new URL(req.url);
+    const days = parseInt(searchParams.get("days") || "40", 10);
+
+    const filterDate = new Date();
+    filterDate.setDate(filterDate.getDate() - days);
 
     const records = await (TravelerRecord as any)
-      .find({ date: { $gte: fortyDaysAgo } })
+      .find({ date: { $gte: filterDate } })
       .populate("user", "firstName lastName");
     return NextResponse.json({ success: true, data: records }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("API Error (GET /api/travelers):", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
