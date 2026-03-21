@@ -6,8 +6,10 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get('token')?.value
  
   const { pathname } = req.nextUrl
+  const publicPaths = ['/login', '/register', '/reset-password']
+  const isPublicPath = publicPaths.includes(pathname)
  
-  if (!token && pathname !== '/login' && pathname !== '/register') {
+  if (!token && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
  

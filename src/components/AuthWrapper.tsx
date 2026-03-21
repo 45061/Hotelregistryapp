@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Navbar from './Navbar';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
@@ -15,7 +15,9 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [openBox, setOpenBox] = useState<any>(null);
   const router = useRouter();
+  const pathname = usePathname();
   const { charge } = useSelector((state: any) => state.dateReducer);
+  const isPublicRoute = pathname === '/login' || pathname === '/register' || pathname === '/reset-password';
 
   const fetchUserAndBoxes = useCallback(async () => {
     setLoading(true);
@@ -53,8 +55,15 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    if (isPublicRoute) {
+      setLoading(false);
+      setUser(null);
+      setOpenBox(null);
+      return;
+    }
+
     fetchUserAndBoxes();
-  }, [charge, fetchUserAndBoxes]);
+  }, [charge, fetchUserAndBoxes, isPublicRoute]);
 
   
 
@@ -128,7 +137,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   
   return (
     <>
-      <Navbar user={user} onLogout={handleLogout} loading={loading} />
+      {!isPublicRoute ? <Navbar user={user} onLogout={handleLogout} loading={loading} /> : null}
       {children}
     </>
   );

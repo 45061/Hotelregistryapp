@@ -8,18 +8,19 @@ export async function POST(req) {
 
   try {
     const { email, password, confirmPassword, firstName, lastName, phoneNumber } = await req.json();
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
     if (password !== confirmPassword) {
       return NextResponse.json({ success: false, error: 'Passwords do not match.' }, { status: 400 });
     }
 
-    const existingUser = await (User as any).findOne({ email });
+    const existingUser = await (User as any).findOne({ email: normalizedEmail });
     if (existingUser) {
       return NextResponse.json({ success: false, error: 'User with this email already exists.' }, { status: 409 });
     }
 
     const newUser = await (User as any).create({
-      email,
+      email: normalizedEmail,
       password,
       firstName,
       lastName,

@@ -12,6 +12,8 @@ export interface IUser extends Document {
   isSuperUser: boolean;
   authorized: boolean;
   isWaitress: boolean;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const userSchema = new Schema({
@@ -19,6 +21,8 @@ const userSchema = new Schema({
     type: String,
     required: [true, "Please provide an email"],
     unique: true,
+    lowercase: true,
+    trim: true,
     match: [
       /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/,
       "Please provide a valid email",
@@ -57,6 +61,14 @@ const userSchema = new Schema({
   isWaitress: {
     type: Boolean,
     default: false,
+  },
+  resetPasswordToken: {
+    type: String,
+    select: false,
+  },
+  resetPasswordExpires: {
+    type: Date,
+    select: false,
   },
 }, { timestamps: true });
 

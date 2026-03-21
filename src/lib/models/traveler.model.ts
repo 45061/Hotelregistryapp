@@ -17,6 +17,7 @@ export interface ITraveler<T = mongoose.Types.ObjectId> extends Document {
     breakfast: boolean;
     amountPaid: number;
     paymentMethod: string;
+    documentImageUrl?: string;
     companions: T[]; // Now it's a generic type
     user: mongoose.Types.ObjectId;
 }
@@ -38,6 +39,7 @@ const travelerSchema = new Schema<ITraveler>({
     breakfast: { type: Boolean, required: true },
     amountPaid: { type: Number, required: true },
     paymentMethod: { type: String, required: true },
+    documentImageUrl: { type: String },
     companions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Companion' }],
     user: {
         type: mongoose.Schema.Types.ObjectId,

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import PublicModal from "@/components/PublicModal";
 
 interface TravelerRecord {
   _id: string;
@@ -22,6 +23,7 @@ interface TravelerRecord {
   breakfast: boolean;
   amountPaid: number;
   paymentMethod: string;
+  documentImageUrl?: string;
   companions?: any[]; // Assuming companions will be populated
 }
 
@@ -43,6 +45,7 @@ const labelTranslations: Record<keyof TravelerRecord, string> = {
   breakfast: "Desayuno",
   amountPaid: "Monto Pagado",
   paymentMethod: "Método de Pago",
+  documentImageUrl: "Documento",
   companions: "Acompañantes",
 };
 
@@ -51,6 +54,8 @@ export default function TravelerDetailsPage() {
   const { id } = params;
   const [traveler, setTraveler] = useState<TravelerRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const router = useRouter();
@@ -100,6 +105,95 @@ export default function TravelerDetailsPage() {
     }
   }, [id, loadingUser, user]);
 
+  const compressImageForUpload = async (file: File) => {
+    const imageUrl = URL.createObjectURL(file);
+
+    try {
+      const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("No se pudo leer la imagen."));
+        img.src = imageUrl;
+      });
+
+      const maxDimension = 1800;
+      const largestSide = Math.max(image.width, image.height);
+      const scale = largestSide > maxDimension ? maxDimension / largestSide : 1;
+      const targetWidth = Math.round(image.width * scale);
+      const targetHeight = Math.round(image.height * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        throw new Error("No se pudo procesar la imagen.");
+      }
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, targetWidth, targetHeight);
+      context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+      const compressedBlob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/jpeg", 0.82);
+      });
+
+      if (!compressedBlob) {
+        throw new Error("No se pudo comprimir la imagen.");
+      }
+
+      return new File([compressedBlob], `${file.name.replace(/\.[^.]+$/, "") || "documento"}.jpg`, {
+        type: "image/jpeg",
+      });
+    } finally {
+      URL.revokeObjectURL(imageUrl);
+    }
+  };
+
+  const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile || !id) {
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      const compressedFile = await compressImageForUpload(selectedFile);
+      const formData = new FormData();
+      formData.append("file", compressedFile);
+
+      const response = await fetch(`/api/travelers/${id}/image`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        toast.error(data.error || "No se pudo subir la imagen.");
+        return;
+      }
+
+      setTraveler((currentTraveler) =>
+        currentTraveler
+          ? {
+              ...currentTraveler,
+              documentImageUrl: data.data.documentImageUrl,
+            }
+          : currentTraveler
+      );
+      toast.success("Imagen subida correctamente.");
+    } catch (error) {
+      toast.error("Ocurrió un error al subir la imagen.");
+    } finally {
+      setUploadingImage(false);
+      event.target.value = "";
+    }
+  };
+
   if (loadingUser || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -127,13 +221,59 @@ export default function TravelerDetailsPage() {
           <h2 className="mb-6 text-3xl font-heading text-verde-principal text-center">
             Información del Viajero
           </h2>
+          <div className="mb-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h3 className="text-xl font-heading text-verde-principal">
+                  Documento o política firmada
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Sube una imagen y quedará guardada en Cloudinary para este viajero.
+                </p>
+              </div>
+              <label className="inline-flex items-center justify-center px-4 py-2 bg-verde-principal text-white rounded-md cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-60">
+                <span>{uploadingImage ? "Subiendo..." : "Subir imagen"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingImage}
+                  onChange={handleImageUpload}
+                />
+              </label>
+            </div>
+
+            {traveler.documentImageUrl ? (
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={() => setIsImageModalOpen(true)}
+                  className="group text-left"
+                >
+                  <img
+                    src={traveler.documentImageUrl}
+                    alt={`Documento de ${traveler.name}`}
+                    className="h-36 w-36 rounded-lg border border-gray-200 object-cover shadow-sm transition-transform group-hover:scale-[1.02]"
+                  />
+                  <span className="mt-2 block text-sm text-verde-principal font-medium">
+                    Click para ampliar
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-gray-600">
+                Aún no hay una imagen cargada para este viajero.
+              </p>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Object.entries(traveler).map(([key, value]) => {
               if (
                 key === "_id" ||
                 key === "__v" ||
                 key === "createdAt" ||
-                key === "updatedAt"
+                key === "updatedAt" ||
+                key === "documentImageUrl"
               )
                 return null;
               if (key === "companions") {
@@ -195,6 +335,21 @@ export default function TravelerDetailsPage() {
           </div>
         </div>
       </main>
+
+      <PublicModal
+        opened={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        size="xl"
+        title="Vista previa del documento"
+      >
+        {traveler.documentImageUrl ? (
+          <img
+            src={traveler.documentImageUrl}
+            alt={`Documento ampliado de ${traveler.name}`}
+            className="w-full h-auto rounded-lg"
+          />
+        ) : null}
+      </PublicModal>
     </div>
   );
 }
