@@ -9,8 +9,11 @@ export async function POST(req) {
 
   try {
     const { email, password } = await req.json();
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    const user = await (User as any).findOne({ email }).select("+password firstName lastName isAdmin authorized isSuperUser");
+    const user = await (User as any)
+      .findOne({ email: normalizedEmail })
+      .select("+password firstName lastName isAdmin authorized isSuperUser");
 
     if (!user) {
       return NextResponse.json(
