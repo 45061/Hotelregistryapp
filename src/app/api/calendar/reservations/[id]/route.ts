@@ -90,6 +90,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       body.phoneNumber !== undefined ? String(body.phoneNumber).trim() : reservation.phoneNumber;
     reservation.email =
       body.email !== undefined ? String(body.email).trim().toLowerCase() : reservation.email;
+    reservation.hasIva =
+      body.hasIva !== undefined ? Boolean(body.hasIva) : reservation.hasIva;
+    reservation.paymentMethod =
+      body.paymentMethod !== undefined ? String(body.paymentMethod).trim() : reservation.paymentMethod;
     reservation.guestCount =
       body.guestCount !== undefined ? Math.max(1, Number(body.guestCount || 1)) : reservation.guestCount;
     reservation.roomPrice =

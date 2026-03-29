@@ -47,6 +47,10 @@ Las columnas escritas en la hoja son:
 
 - `reservationId`
 - `guestName`
+- `phoneNumber`
+- `email`
+- `guestCount`
+- `roomPrice`
 - `travelerId`
 - `roomId`
 - `roomNumber`
@@ -65,8 +69,10 @@ Las columnas escritas en la hoja son:
 
 1. Entra a [calendar/page.tsx](/Users/andersonuribe/Desktop/AppIA/src/app/calendar/page.tsx)
 2. Si hace falta, usa `Migrar viajeros`
-3. Usa `Sincronizar Sheets`
-4. Verifica que las filas aparezcan en la hoja
+3. Actualiza también el Apps Script con la versión nueva de [google-sheets-webhook.gs](/Users/andersonuribe/Desktop/AppIA/scripts/google-sheets-webhook.gs)
+4. Vuelve a desplegar el Web App como nueva versión
+5. Usa `Sincronizar Sheets`
+6. Verifica que las filas aparezcan en la hoja con las nuevas columnas
 
 ## 7. Nota operativa
 

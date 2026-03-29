@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import PublicModal from "@/components/PublicModal";
@@ -27,6 +27,9 @@ type ReservationBlock = {
   guestName: string;
   phoneNumber: string;
   email: string;
+  hasIva: boolean;
+  paymentMethod: string;
+  notes: string;
   guestCount: number;
   roomPrice: number;
   travelerId: string | null;
@@ -70,6 +73,8 @@ type ReservationFormState = {
   guestName: string;
   phoneNumber: string;
   email: string;
+  hasIva: boolean;
+  paymentMethod: string;
   guestCount: string;
   roomPrice: string;
   roomId: string;
@@ -90,25 +95,33 @@ function formatInputDate(date: Date) {
 
 function colorClasses(colorKey: string) {
   switch (colorKey) {
-    case "occupied":
+    case "confirmed":
       return "bg-emerald-500 text-white border-emerald-700";
-    case "checkout":
-      return "bg-sky-500 text-white border-sky-700";
+    case "checked_in":
+      return "bg-red-500 text-white border-red-700";
+    case "checked_out":
+      return "bg-sky-300 text-sky-950 border-sky-500";
+    case "noshow":
+      return "bg-violet-300 text-violet-950 border-violet-500";
     case "cancelled":
       return "bg-slate-400 text-white border-slate-600 opacity-80";
     case "unassigned":
       return "bg-amber-500 text-white border-amber-700";
     default:
-      return "bg-orange-500 text-white border-orange-700";
+      return "bg-emerald-500 text-white border-emerald-700";
   }
 }
 
 function getStatusColorKey(status: string) {
   switch (status) {
+    case "confirmed":
+      return "confirmed";
     case "checked_in":
-      return "occupied";
+      return "checked_in";
     case "checked_out":
-      return "checkout";
+      return "checked_out";
+    case "noshow":
+      return "noshow";
     case "cancelled":
       return "cancelled";
     case "unassigned":
@@ -140,17 +153,22 @@ const statusLegend = [
   {
     key: "confirmed",
     label: "Confirmada",
-    dotClass: "bg-orange-500 border-orange-700",
-  },
-  {
-    key: "occupied",
-    label: "Check-in / Ocupada",
     dotClass: "bg-emerald-500 border-emerald-700",
   },
   {
-    key: "checkout",
+    key: "checked_in",
+    label: "Check-in",
+    dotClass: "bg-red-500 border-red-700",
+  },
+  {
+    key: "checked_out",
     label: "Check-out",
-    dotClass: "bg-sky-500 border-sky-700",
+    dotClass: "bg-sky-300 border-sky-500",
+  },
+  {
+    key: "noshow",
+    label: "No presentado",
+    dotClass: "bg-violet-300 border-violet-500",
   },
   {
     key: "unassigned",
@@ -164,11 +182,33 @@ const statusLegend = [
   },
 ];
 
+const reservationSourceOptions = [
+  "Directo",
+  "Booking",
+  "Expedia",
+  "Airbnb",
+  "Despegar",
+  "BestTravel",
+  "Otro",
+];
+
+const paymentMethodOptions = [
+  "efectivo",
+  "datafono",
+  "transferencia Nequi",
+  "Transferencia Banco",
+  "Airbnb",
+  "Ota Colect",
+  "debe",
+];
+
 function createInitialReservationForm(startDate: string, hotelFilter: string): ReservationFormState {
   return {
     guestName: "",
     phoneNumber: "",
     email: "",
+    hasIva: false,
+    paymentMethod: "",
     guestCount: "1",
     roomPrice: "",
     roomId: "",
@@ -192,7 +232,6 @@ export default function CalendarPage() {
   const [days, setDays] = useState<CalendarDay[]>([]);
   const [groups, setGroups] = useState<CalendarGroup[]>([]);
   const [unassigned, setUnassigned] = useState<ReservationBlock[]>([]);
-  const [bootstrapping, setBootstrapping] = useState(false);
   const [syncingSheets, setSyncingSheets] = useState(false);
   const [rooms, setRooms] = useState<RoomOption[]>([]);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
@@ -200,6 +239,7 @@ export default function CalendarPage() {
   const [isLegacyReservationDraft, setIsLegacyReservationDraft] = useState(false);
   const [savingReservation, setSavingReservation] = useState(false);
   const [deletingReservation, setDeletingReservation] = useState(false);
+  const [previewReservationId, setPreviewReservationId] = useState<string | null>(null);
   const [draggedReservationId, setDraggedReservationId] = useState<string | null>(null);
   const [dragTargetRoomId, setDragTargetRoomId] = useState<string | null>(null);
   const [dragTargetDayIndex, setDragTargetDayIndex] = useState<number | null>(null);
@@ -207,6 +247,7 @@ export default function CalendarPage() {
   const [reservationForm, setReservationForm] = useState<ReservationFormState>(() =>
     createInitialReservationForm(formatInputDate(new Date()), "")
   );
+  const previewLayerRef = useRef<HTMLDivElement | null>(null);
 
   const end = useMemo(
     () => formatInputDate(addDays(createLocalDateFromDayString(start), daysToShow)),
@@ -288,6 +329,9 @@ export default function CalendarPage() {
         guestName: reservation.guestName,
         phoneNumber: reservation.phoneNumber || "",
         email: reservation.email || "",
+        hasIva: Boolean(reservation.hasIva),
+        paymentMethod: reservation.paymentMethod || "",
+        notes: reservation.notes || "",
         guestCount: Number(reservation.guestCount || 1),
         roomPrice: Number(reservation.roomPrice || 0),
         travelerId: reservation.travelerId ? String(reservation.travelerId) : null,
@@ -472,6 +516,8 @@ export default function CalendarPage() {
         guestName: reservation.guestName || "",
         phoneNumber: reservation.phoneNumber || "",
         email: reservation.email || "",
+        hasIva: Boolean(reservation.hasIva),
+        paymentMethod: reservation.paymentMethod || "",
         guestCount: String(reservation.guestCount || 1),
         roomPrice: String(reservation.roomPrice || ""),
         roomId: reservation.roomId || "",
@@ -504,6 +550,8 @@ export default function CalendarPage() {
         guestName: persistedReservation.guestName || "",
         phoneNumber: persistedReservation.phoneNumber || "",
         email: persistedReservation.email || "",
+        hasIva: Boolean(persistedReservation.hasIva),
+        paymentMethod: persistedReservation.paymentMethod || "",
         guestCount: String(persistedReservation.guestCount || 1),
         roomPrice: String(persistedReservation.roomPrice || ""),
         roomId:
@@ -534,7 +582,11 @@ export default function CalendarPage() {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
-    setReservationForm((current) => ({ ...current, [name]: value }));
+    const nextValue =
+      event.target instanceof HTMLInputElement && event.target.type === "checkbox"
+        ? event.target.checked
+        : value;
+    setReservationForm((current) => ({ ...current, [name]: nextValue }));
   };
 
   const handleReservationSubmit = async (event: React.FormEvent) => {
@@ -580,31 +632,6 @@ export default function CalendarPage() {
     }
   };
 
-  const handleBootstrap = async () => {
-    setBootstrapping(true);
-
-    try {
-      const response = await fetch("/api/calendar/bootstrap-from-travelers", {
-        method: "POST",
-      });
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        toast.error(data.error || "No se pudo migrar la información de viajeros.");
-        return;
-      }
-
-      toast.success(
-        `Migración lista. Creadas: ${data.data.created}, omitidas: ${data.data.skipped}.`
-      );
-      await fetchCalendar();
-    } catch (error) {
-      toast.error("Ocurrió un error al migrar los viajeros.");
-    } finally {
-      setBootstrapping(false);
-    }
-  };
-
   const handleSyncSheets = async () => {
     setSyncingSheets(true);
 
@@ -636,6 +663,7 @@ export default function CalendarPage() {
   };
 
   const handleDragStart = (reservationId: string) => {
+    setPreviewReservationId((current) => (current === reservationId ? null : current));
     setDraggedReservationId(reservationId);
   };
 
@@ -645,6 +673,33 @@ export default function CalendarPage() {
     setDragTargetDayIndex(null);
     setIsUnassignedDropActive(false);
   };
+
+  const toggleReservationPreview = (reservationId: string) => {
+    setPreviewReservationId((current) => (current === reservationId ? null : reservationId));
+  };
+
+  const closeReservationPreview = (reservationId?: string) => {
+    setPreviewReservationId((current) =>
+      !reservationId || current === reservationId ? null : current
+    );
+  };
+
+  useEffect(() => {
+    if (!previewReservationId) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!previewLayerRef.current?.contains(event.target as Node)) {
+        setPreviewReservationId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [previewReservationId]);
 
   const handleDeleteReservation = async () => {
     if (!editingReservationId) {
@@ -705,6 +760,8 @@ export default function CalendarPage() {
             guestName: reservation.guestName,
             phoneNumber: reservation.phoneNumber || "",
             email: reservation.email || "",
+            hasIva: Boolean(reservation.hasIva),
+            paymentMethod: reservation.paymentMethod || "",
             guestCount: reservation.guestCount || 1,
             roomPrice: reservation.roomPrice || 0,
             travelerId: reservation.travelerId,
@@ -905,15 +962,6 @@ export default function CalendarPage() {
 
               <button
                 type="button"
-                onClick={handleBootstrap}
-                disabled={bootstrapping}
-                className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {bootstrapping ? "Migrando..." : "Migrar viajeros"}
-              </button>
-
-              <button
-                type="button"
                 onClick={handleSyncSheets}
                 disabled={syncingSheets}
                 className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 disabled:cursor-not-allowed disabled:opacity-70"
@@ -1078,28 +1126,179 @@ export default function CalendarPage() {
                         />
                       ) : null}
                       {room.reservations.map((reservation) => (
-                        <button
-                          type="button"
+                        <div
                           key={reservation.id}
-                          onClick={() => openEditReservationModal(reservation)}
                           draggable
                           onDragStart={() => handleDragStart(reservation.id)}
                           onDragEnd={handleDragEnd}
-                          className={`absolute top-3 flex h-12 items-center rounded-md border-l-4 px-3 text-sm font-semibold shadow-sm ${colorClasses(
+                          className={`absolute top-3 flex h-12 overflow-visible rounded-md border-l-4 text-sm font-semibold shadow-sm ${colorClasses(
                             reservation.colorKey
                           )}`}
                           style={getReservationBlockStyle(reservation)}
                           title={`${reservation.guestName} · ${reservation.checkIn.slice(0, 10)} → ${reservation.checkOut.slice(0, 10)}`}
                         >
-                          <div className="min-w-0">
+                          <button
+                            type="button"
+                            draggable={false}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleReservationPreview(reservation.id);
+                            }}
+                            className="flex h-full w-5 flex-none items-center justify-center bg-black/10 text-white/95 transition hover:bg-black/20"
+                            aria-label={`Ver detalles de ${reservation.guestName}`}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-3 w-3"
+                            >
+                              <circle cx="11" cy="11" r="7" />
+                              <path d="m20 20-3.5-3.5" />
+                            </svg>
+                          </button>
+
+                          <button
+                            type="button"
+                            draggable={false}
+                            onClick={() => openEditReservationModal(reservation)}
+                            className="min-w-0 flex-1 px-2.5 text-left"
+                          >
                             <span className="block truncate">
                               {reservation.guestName}
                             </span>
                             <span className="block truncate text-[11px] font-medium text-white/85">
                               {reservation.source || reservation.status}
                             </span>
-                          </div>
-                        </button>
+                          </button>
+
+                          {previewReservationId === reservation.id ? (
+                            <div
+                              ref={previewLayerRef}
+                              className="absolute left-0 top-[calc(100%+10px)] z-40 w-80 select-text rounded-2xl border border-stone-200 bg-white p-4 text-left text-stone-700 shadow-2xl"
+                            >
+                              <div className="mb-3 flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-400">
+                                    Reserva
+                                  </p>
+                                  <h3 className="mt-1 text-lg font-heading text-slate-800">
+                                    {reservation.guestName}
+                                  </h3>
+                                </div>
+                                <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+                                  {reservation.status.replaceAll("_", " ")}
+                                </span>
+                              </div>
+
+                              <div className="grid gap-3 text-sm sm:grid-cols-2">
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Habitación
+                                  </p>
+                                  <p className="mt-1 font-medium text-stone-700">
+                                    {reservation.roomNumber || "Sin asignar"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Hotel
+                                  </p>
+                                  <p className="mt-1 font-medium text-stone-700">
+                                    {reservation.hotel || "Sin hotel"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Check-in
+                                  </p>
+                                  <p className="mt-1 font-medium text-stone-700">{reservation.checkIn}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Check-out
+                                  </p>
+                                  <p className="mt-1 font-medium text-stone-700">{reservation.checkOut}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Teléfono
+                                  </p>
+                                  <p className="mt-1 font-medium text-stone-700">
+                                    {reservation.phoneNumber || "Sin dato"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Correo
+                                  </p>
+                                  <p className="mt-1 truncate font-medium text-stone-700">
+                                    {reservation.email || "Sin dato"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Personas
+                                  </p>
+                                  <p className="mt-1 font-medium text-stone-700">{reservation.guestCount}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                    Valor
+                                  </p>
+                                  <p className="mt-1 font-medium text-stone-700">
+                                    {reservation.roomPrice
+                                      ? `$${reservation.roomPrice.toLocaleString("es-CO")}`
+                                      : "Sin valor"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="mt-3 border-t border-stone-100 pt-3 text-sm">
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                  <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                      IVA
+                                    </p>
+                                    <p className="mt-1 font-medium text-stone-700">
+                                      {reservation.hasIva ? "Sí" : "No"}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                      Forma de pago
+                                    </p>
+                                    <p className="mt-1 font-medium text-stone-700">
+                                      {reservation.paymentMethod || "Sin especificar"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-3 border-t border-stone-100 pt-3 text-sm">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                  Ubicación de la reserva
+                                </p>
+                                <p className="mt-1 font-medium text-stone-700">
+                                  {reservation.source || "Sin especificar"}
+                                </p>
+                              </div>
+
+                              <div className="mt-3 border-t border-stone-100 pt-3 text-sm">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+                                  Notas
+                                </p>
+                                <p className="mt-1 whitespace-pre-wrap font-medium text-stone-700">
+                                  {reservation.notes || "Sin notas"}
+                                </p>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -1224,6 +1423,36 @@ export default function CalendarPage() {
               />
             </div>
 
+            <div className="rounded-xl border border-stone-200 bg-white px-3 py-3 shadow-sm">
+              <label className="flex items-center gap-3 text-sm font-medium text-stone-700">
+                <input
+                  type="checkbox"
+                  name="hasIva"
+                  checked={reservationForm.hasIva}
+                  onChange={handleReservationFormChange}
+                  className="h-4 w-4 rounded border-stone-300 text-verde-principal focus:ring-verde-principal/30"
+                />
+                Tiene IVA
+              </label>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-stone-700">Forma de pago</label>
+              <select
+                name="paymentMethod"
+                value={reservationForm.paymentMethod}
+                onChange={handleReservationFormChange}
+                className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-verde-principal focus:outline-none focus:ring-2 focus:ring-verde-principal/20"
+              >
+                <option value="">Selecciona una opción</option>
+                {paymentMethodOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="mb-1 block text-sm font-medium text-stone-700">Check-in</label>
               <input
@@ -1276,20 +1505,27 @@ export default function CalendarPage() {
                 <option value="confirmed">Confirmada</option>
                 <option value="checked_in">Check-in</option>
                 <option value="checked_out">Check-out</option>
+                <option value="noshow">No presentado</option>
                 <option value="cancelled">Cancelada</option>
                 <option value="unassigned">No asignada</option>
               </select>
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-stone-700">Fuente</label>
-              <input
+              <label className="mb-1 block text-sm font-medium text-stone-700">Ubicación de la reserva</label>
+              <select
                 name="source"
                 value={reservationForm.source}
                 onChange={handleReservationFormChange}
                 className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-verde-principal focus:outline-none focus:ring-2 focus:ring-verde-principal/20"
-                placeholder="Booking, Directo, Airbnb..."
-              />
+              >
+                <option value="">Select an option</option>
+                {reservationSourceOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="md:col-span-2">

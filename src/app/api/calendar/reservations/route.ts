@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import dbConnect from "@/lib/db";
 import Room from "@/lib/models/room.model";
 import Reservation from "@/lib/models/reservation.model";
-import Traveler from "@/lib/models/traveler.model";
 import { syncReservationToGoogleSheets } from "@/lib/google-sheets";
 import {
   addDays,
@@ -41,8 +40,6 @@ export async function GET(req: NextRequest) {
 
     const roomQuery = hotelParam ? { hotel: hotelParam } : {};
     const rooms = await (Room as any).find(roomQuery).sort({ hotel: 1, roomType: 1, roomNumber: 1 }).lean();
-    const roomIds = rooms.map((room: any) => room._id);
-
     const days = [];
     for (let current = new Date(startDate); current < endDate; current = addDays(current, 1)) {
       days.push({
@@ -68,53 +65,10 @@ export async function GET(req: NextRequest) {
       .populate("roomId", "roomNumber roomType hotel")
       .lean();
 
-    let reservationsToRender = persistedReservations;
-
-    if (persistedReservations.length === 0) {
-      const travelerQuery: any = {
-        date: { $lt: endDate },
-      };
-
-      if (hotelParam) {
-        travelerQuery.headquarters = hotelParam;
-      }
-
-      const travelers = await (Traveler as any).find(travelerQuery).lean();
-      const roomsByNumber = new Map<string, any>(rooms.map((room: any) => [room.roomNumber, room]));
-
-      reservationsToRender = travelers
-        .map((traveler: any) => {
-          const checkIn = startOfDay(new Date(traveler.date));
-          const checkOut = addDays(checkIn, Math.max(1, Number(traveler.reservedNights) || 1));
-          const room: any = roomsByNumber.get(traveler.roomNumber);
-
-          if (!overlapsRange(checkIn, checkOut, startDate, endDate)) {
-            return null;
-          }
-
-          return {
-            _id: traveler._id,
-            guestName: traveler.name,
-            email: traveler.email || "",
-            travelerId: traveler._id,
-            isPersisted: false,
-            roomId: room?._id || null,
-            roomNumberSnapshot: traveler.roomNumber,
-            hotel: room?.hotel || traveler.headquarters || "Sin sede",
-            roomTypeSnapshot: room?.roomType || "Sin categoría",
-            checkIn,
-            checkOut,
-            status: room ? "checked_in" : "unassigned",
-            source: traveler.reservationLocation,
-          };
-        })
-        .filter(Boolean);
-    }
-
     const reservationsByRoomId = new Map<string, any[]>();
     const unassigned: any[] = [];
 
-    reservationsToRender.forEach((reservation: any) => {
+    persistedReservations.forEach((reservation: any) => {
       const checkIn = normalizeStoredReservationDate(reservation.checkIn);
       const checkOut = normalizeStoredReservationDate(reservation.checkOut);
 
@@ -148,6 +102,8 @@ export async function GET(req: NextRequest) {
         guestName: reservation.guestName,
         phoneNumber: reservation.phoneNumber || "",
         email: reservation.email || "",
+        hasIva: Boolean(reservation.hasIva),
+        paymentMethod: reservation.paymentMethod || "",
         guestCount: Number(reservation.guestCount || 1),
         roomPrice: Number(reservation.roomPrice || 0),
         travelerId: reservation.travelerId ? String(reservation.travelerId) : null,
@@ -239,6 +195,8 @@ export async function POST(req: NextRequest) {
     const guestName = String(body.guestName || "").trim();
     const phoneNumber = String(body.phoneNumber || "").trim();
     const email = String(body.email || "").trim().toLowerCase();
+    const hasIva = Boolean(body.hasIva);
+    const paymentMethod = String(body.paymentMethod || "").trim();
     const hotel = String(body.hotel || "").trim();
     const guestCount = Math.max(1, Number(body.guestCount || 1));
     const roomPrice = Math.max(0, Number(body.roomPrice || 0));
@@ -284,6 +242,8 @@ export async function POST(req: NextRequest) {
       guestName,
       phoneNumber,
       email,
+      hasIva,
+      paymentMethod,
       guestCount,
       roomPrice,
       travelerId: body.travelerId || null,

@@ -24,10 +24,14 @@ export type CalendarAuthUser = {
 
 export function getStatusColorKey(status: string) {
   switch (status) {
+    case "confirmed":
+      return "confirmed";
     case "checked_in":
-      return "occupied";
+      return "checked_in";
     case "checked_out":
-      return "checkout";
+      return "checked_out";
+    case "noshow":
+      return "noshow";
     case "cancelled":
       return "cancelled";
     case "unassigned":

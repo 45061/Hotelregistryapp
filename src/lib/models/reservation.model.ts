@@ -4,6 +4,7 @@ export type ReservationStatus =
   | "confirmed"
   | "checked_in"
   | "checked_out"
+  | "noshow"
   | "cancelled"
   | "unassigned";
 
@@ -11,6 +12,8 @@ export interface IReservation extends Document {
   guestName: string;
   phoneNumber?: string;
   email?: string;
+  hasIva: boolean;
+  paymentMethod?: string;
   guestCount: number;
   roomPrice: number;
   travelerId?: mongoose.Types.ObjectId | null;
@@ -33,6 +36,8 @@ const reservationSchema = new Schema<IReservation>(
     guestName: { type: String, required: true, trim: true },
     phoneNumber: { type: String, trim: true, default: "" },
     email: { type: String, trim: true, lowercase: true, default: "" },
+    hasIva: { type: Boolean, default: false },
+    paymentMethod: { type: String, trim: true, default: "" },
     guestCount: { type: Number, default: 1, min: 1 },
     roomPrice: { type: Number, default: 0, min: 0 },
     travelerId: { type: mongoose.Schema.Types.ObjectId, ref: "TravelerRecord", default: null },
@@ -44,7 +49,7 @@ const reservationSchema = new Schema<IReservation>(
     checkOut: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["confirmed", "checked_in", "checked_out", "cancelled", "unassigned"],
+      enum: ["confirmed", "checked_in", "checked_out", "noshow", "cancelled", "unassigned"],
       default: "confirmed",
     },
     source: { type: String, trim: true },

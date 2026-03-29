@@ -5,6 +5,8 @@ type ReservationLike = {
   guestName: string;
   phoneNumber?: string;
   email?: string;
+  hasIva?: boolean;
+  paymentMethod?: string;
   travelerId?: string | null;
   roomId?: string | null;
   roomNumberSnapshot?: string;
@@ -75,6 +77,8 @@ function mapReservationPayload(reservation: ReservationLike) {
     guestName: reservation.guestName,
     phoneNumber: reservation.phoneNumber || "",
     email: reservation.email || "",
+    hasIva: reservation.hasIva ?? false,
+    paymentMethod: reservation.paymentMethod || "",
     guestCount: (reservation as any).guestCount ?? 1,
     roomPrice: (reservation as any).roomPrice ?? 0,
     travelerId: reservation.travelerId ? String(reservation.travelerId) : null,
