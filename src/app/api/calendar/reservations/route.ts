@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import Room from "@/lib/models/room.model";
 import Reservation from "@/lib/models/reservation.model";
 import { syncReservationToGoogleSheets } from "@/lib/google-sheets";
+import { calculateReservationAmounts } from "@/lib/reservation-pricing";
 import {
   addDays,
   findReservationConflict,
@@ -18,6 +19,32 @@ import {
   startOfDay,
 } from "@/lib/reservations";
 import { normalizeStoredReservationDate } from "@/lib/reservation-dates";
+
+function sanitizeReservationExtras(extras: unknown) {
+  if (!Array.isArray(extras)) {
+    return [];
+  }
+
+  return extras
+    .map((extra) => {
+      const item = extra as Record<string, unknown>;
+      const name = String(item?.name || "").trim();
+      const unitValue = Math.max(0, Number(item?.unitValue || 0));
+      const quantity = Math.max(0, Number(item?.quantity || 0));
+
+      if (!name) {
+        return null;
+      }
+
+      return {
+        name,
+        unitValue,
+        quantity,
+        totalValue: unitValue * quantity,
+      };
+    })
+    .filter(Boolean);
+}
 
 export async function GET(req: NextRequest) {
   await dbConnect();
@@ -200,9 +227,11 @@ export async function POST(req: NextRequest) {
     const hotel = String(body.hotel || "").trim();
     const guestCount = Math.max(1, Number(body.guestCount || 1));
     const roomPrice = Math.max(0, Number(body.roomPrice || 0));
+    const pricing = calculateReservationAmounts(roomPrice, hasIva);
     const checkIn = parseReservationDate(body.checkIn);
     const checkOut = parseReservationDate(body.checkOut);
     const roomId = body.roomId ? String(body.roomId) : null;
+    const extras = sanitizeReservationExtras(body.extras);
 
     if (!guestName || !hotel || Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime())) {
       return NextResponse.json(
@@ -246,6 +275,9 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       guestCount,
       roomPrice,
+      ivaAmount: pricing.ivaAmount,
+      roomPriceWithoutIva: pricing.roomPriceWithoutIva,
+      roomPriceWithIva: pricing.roomPriceWithIva,
       travelerId: body.travelerId || null,
       roomId,
       roomNumberSnapshot: roomData?.roomNumber || body.roomNumberSnapshot || "",
@@ -256,6 +288,7 @@ export async function POST(req: NextRequest) {
       status: roomId ? body.status || "confirmed" : "unassigned",
       source: body.source || "",
       notes: body.notes || "",
+      extras,
       createdBy: authUser.id,
       updatedBy: authUser.id,
     });

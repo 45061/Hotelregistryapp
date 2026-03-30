@@ -8,6 +8,13 @@ export type ReservationStatus =
   | "cancelled"
   | "unassigned";
 
+export interface IReservationExtra {
+  name: string;
+  unitValue: number;
+  quantity: number;
+  totalValue: number;
+}
+
 export interface IReservation extends Document {
   guestName: string;
   phoneNumber?: string;
@@ -16,6 +23,9 @@ export interface IReservation extends Document {
   paymentMethod?: string;
   guestCount: number;
   roomPrice: number;
+  ivaAmount: number;
+  roomPriceWithoutIva: number;
+  roomPriceWithIva: number;
   travelerId?: mongoose.Types.ObjectId | null;
   roomId?: mongoose.Types.ObjectId | null;
   roomNumberSnapshot?: string;
@@ -26,10 +36,21 @@ export interface IReservation extends Document {
   status: ReservationStatus;
   source?: string;
   notes?: string;
+  extras: IReservationExtra[];
   sheetRowId?: string;
   createdBy?: mongoose.Types.ObjectId | null;
   updatedBy?: mongoose.Types.ObjectId | null;
 }
+
+const reservationExtraSchema = new Schema<IReservationExtra>(
+  {
+    name: { type: String, required: true, trim: true },
+    unitValue: { type: Number, default: 0, min: 0 },
+    quantity: { type: Number, default: 1, min: 0 },
+    totalValue: { type: Number, default: 0, min: 0 },
+  },
+  { _id: false }
+);
 
 const reservationSchema = new Schema<IReservation>(
   {
@@ -40,6 +61,9 @@ const reservationSchema = new Schema<IReservation>(
     paymentMethod: { type: String, trim: true, default: "" },
     guestCount: { type: Number, default: 1, min: 1 },
     roomPrice: { type: Number, default: 0, min: 0 },
+    ivaAmount: { type: Number, default: 0, min: 0 },
+    roomPriceWithoutIva: { type: Number, default: 0, min: 0 },
+    roomPriceWithIva: { type: Number, default: 0, min: 0 },
     travelerId: { type: mongoose.Schema.Types.ObjectId, ref: "TravelerRecord", default: null },
     roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", default: null },
     roomNumberSnapshot: { type: String, trim: true },
@@ -54,6 +78,7 @@ const reservationSchema = new Schema<IReservation>(
     },
     source: { type: String, trim: true },
     notes: { type: String, trim: true },
+    extras: { type: [reservationExtraSchema], default: [] },
     sheetRowId: { type: String, trim: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
@@ -81,7 +106,14 @@ reservationSchema.pre("validate", function (next) {
   next();
 });
 
+const existingReservationModel = models.Reservation as Model<IReservation> | undefined;
+
+if (existingReservationModel && !existingReservationModel.schema.path("extras")) {
+  delete mongoose.models.Reservation;
+}
+
 const Reservation: Model<IReservation> =
-  models.Reservation || mongoose.model<IReservation>("Reservation", reservationSchema);
+  (mongoose.models.Reservation as Model<IReservation>) ||
+  mongoose.model<IReservation>("Reservation", reservationSchema);
 
 export default Reservation;

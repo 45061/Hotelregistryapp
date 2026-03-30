@@ -4,11 +4,38 @@ import dbConnect from "@/lib/db";
 import Reservation from "@/lib/models/reservation.model";
 import Room from "@/lib/models/room.model";
 import { syncReservationToGoogleSheets } from "@/lib/google-sheets";
+import { calculateReservationAmounts } from "@/lib/reservation-pricing";
 import {
   findReservationConflict,
   getReservationAuthUser,
   parseReservationDate,
 } from "@/lib/reservations";
+
+function sanitizeReservationExtras(extras: unknown) {
+  if (!Array.isArray(extras)) {
+    return [];
+  }
+
+  return extras
+    .map((extra) => {
+      const item = extra as Record<string, unknown>;
+      const name = String(item?.name || "").trim();
+      const unitValue = Math.max(0, Number(item?.unitValue || 0));
+      const quantity = Math.max(0, Number(item?.quantity || 0));
+
+      if (!name) {
+        return null;
+      }
+
+      return {
+        name,
+        unitValue,
+        quantity,
+        totalValue: unitValue * quantity,
+      };
+    })
+    .filter(Boolean);
+}
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await dbConnect();
@@ -98,6 +125,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       body.guestCount !== undefined ? Math.max(1, Number(body.guestCount || 1)) : reservation.guestCount;
     reservation.roomPrice =
       body.roomPrice !== undefined ? Math.max(0, Number(body.roomPrice || 0)) : reservation.roomPrice;
+    const pricing = calculateReservationAmounts(reservation.roomPrice, reservation.hasIva);
+    reservation.ivaAmount = pricing.ivaAmount;
+    reservation.roomPriceWithoutIva = pricing.roomPriceWithoutIva;
+    reservation.roomPriceWithIva = pricing.roomPriceWithIva;
     reservation.travelerId = body.travelerId !== undefined ? body.travelerId || null : reservation.travelerId;
     reservation.roomId = nextRoomId;
     reservation.roomNumberSnapshot =
@@ -112,6 +143,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       : "unassigned";
     reservation.source = body.source !== undefined ? body.source : reservation.source;
     reservation.notes = body.notes !== undefined ? body.notes : reservation.notes;
+    reservation.extras =
+      body.extras !== undefined ? sanitizeReservationExtras(body.extras) : reservation.extras;
     reservation.updatedBy = authUser.id;
 
     await reservation.save();
