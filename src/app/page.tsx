@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import FormField from "@/components/FormField";
 import AtamsaLogo from "@/components/AtamsaLogo";
-// import Navbar from "@/components/Navbar"; // Eliminar esta línea
+import TravelerRegistrationForm from "@/components/TravelerRegistrationForm";
+import CompanionRegistrationForm from "@/components/CompanionRegistrationForm";
 import TravelerList from "@/components/TravelerList";
 import PendingPaymentsList from "@/components/PendingPaymentsList";
 
@@ -452,208 +453,30 @@ export default function HomePage() {
         </div>
 
         {/* Traveler Registration Form */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            Registro de Viajero
-          </h2>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            <FormField
-              label={fieldLabels.roomNumber}
-              name="roomNumber"
-              value={form.roomNumber}
-              onChange={handleChange}
-              type="select"
-              options={roomNumbers}
-              required
-            />
-            <FormField
-              label={fieldLabels.name}
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
-            <FormField
-              label={fieldLabels.nationality}
-              name="nationality"
-              value={form.nationality}
-              onChange={handleChange}
-              required
-            />
-
-            <FormField
-              label={fieldLabels.origin}
-              name="origin"
-              value={form.origin}
-              onChange={handleChange}
-              required
-            />
-            <FormField
-              label={fieldLabels.reservedNights}
-              name="reservedNights"
-              value={form.reservedNights}
-              onChange={handleChange}
-              type="number"
-              required
-            />
-            <FormField
-              label={fieldLabels.reservationLocation}
-              name="reservationLocation"
-              value={form.reservationLocation}
-              onChange={handleChange}
-              type="select"
-              options={reservationLocations}
-              required
-            />
-            <FormField
-              label={fieldLabels.destination}
-              name="destination"
-              value={form.destination}
-              onChange={handleChange}
-              required
-            />
-            <FormField
-              label={fieldLabels.idType}
-              name="idType"
-              value={form.idType}
-              onChange={handleChange}
-              type="select"
-              options={idTypes}
-              required
-            />
-            <FormField
-              label={fieldLabels.idNumber}
-              name="idNumber"
-              value={form.idNumber}
-              onChange={handleChange}
-              required
-            />
-            <FormField
-              label={fieldLabels.expeditionPlace}
-              name="expeditionPlace"
-              value={form.expeditionPlace}
-              onChange={handleChange}
-              required
-            />
-            <FormField
-              label={fieldLabels.amountPaid}
-              name="amountPaid"
-              value={form.amountPaid}
-              onChange={handleChange}
-              type="number"
-              required
-            />
-            <FormField
-              label={fieldLabels.paymentMethod}
-              name="paymentMethod"
-              value={form.paymentMethod}
-              onChange={handleChange}
-              type="select"
-              options={paymentMethods}
-              required
-            />
-            <FormField
-              label={fieldLabels.breakfast}
-              name="breakfast"
-              checked={form.breakfast}
-              onChange={handleChange}
-              type="checkbox"
-            />
-            <div className="md:col-span-2 lg:col-span-3 flex justify-end space-x-4 mt-4">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors duration-200"
-              >
-                Limpiar
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200"
-              >
-                {editingId ? "Actualizar Viajero" : "Registrar Viajero"}
-              </button>
-            </div>
-          </form>
-        </div>
+        <TravelerRegistrationForm
+          form={form}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+          handleClear={handleClear}
+          editingId={editingId}
+          roomNumbers={roomNumbers}
+          idTypes={idTypes}
+          paymentMethods={paymentMethods}
+          reservationLocations={reservationLocations}
+          fieldLabels={fieldLabels}
+        />
 
         {/* Companion Registration Form */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            Registro de Acompañante
-          </h2>
-          <div className="flex items-end space-x-4 mb-4">
-            <div className="flex-grow">
-              <FormField
-                label="Buscar Viajero por ID"
-                name="searchId"
-                value={searchId}
-                onChange={(e) => setSearchId(e.target.value)}
-                placeholder="Ingresar Número de ID de Viajero"
-              />
-            </div>
-            <button
-              onClick={handleSearch}
-              className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors duration-200"
-            >
-              Buscar
-            </button>
-          </div>
-          <form
-            onSubmit={handleCompanionSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            <FormField
-              label={companionFieldLabels.mainTravelerId}
-              name="mainTravelerId"
-              value={companionForm.mainTravelerId}
-              onChange={handleCompanionChange}
-              readOnly
-              required
-            />
-            <FormField
-              label={companionFieldLabels.name}
-              name="name"
-              value={companionForm.name}
-              onChange={handleCompanionChange}
-              required
-            />
-            <FormField
-              label={companionFieldLabels.idType}
-              name="idType"
-              value={companionForm.idType}
-              onChange={handleCompanionChange}
-              type="select"
-              options={idTypes}
-              required
-            />
-            <FormField
-              label={companionFieldLabels.idNumber}
-              name="idNumber"
-              value={companionForm.idNumber}
-              onChange={handleCompanionChange}
-              required
-            />
-            <FormField
-              label={companionFieldLabels.expeditionPlace}
-              name="expeditionPlace"
-              value={companionForm.expeditionPlace}
-              onChange={handleCompanionChange}
-              required
-            />
-            <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-4">
-              <button
-                type="submit"
-                className="px-6 py-2 bg-amarillo text-gray-900 rounded-md hover:bg-opacity-90 transition-colors duration-200 font-semibold"
-              >
-                Añadir Acompañante
-              </button>
-            </div>
-          </form>
-        </div>
+        <CompanionRegistrationForm
+          searchId={searchId}
+          setSearchId={setSearchId}
+          handleSearch={handleSearch}
+          companionForm={companionForm}
+          handleCompanionChange={handleCompanionChange}
+          handleCompanionSubmit={handleCompanionSubmit}
+          idTypes={idTypes}
+          companionFieldLabels={companionFieldLabels}
+        />
 
         <div className="mb-8">
           <button

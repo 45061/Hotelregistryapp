@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Box from "@/lib/models/box.model";
+import User from "@/lib/models/user.model";
 import jwt from "jsonwebtoken";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -13,6 +14,27 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     if (!box) {
       return NextResponse.json({ success: false, error: "Box not found" }, { status: 404 });
+    }
+
+    // Si la caja está oculta, verificar que el usuario sea superadmin
+    if (box.isHidden) {
+      const token = req.cookies.get("token")?.value;
+      let isSuperUser = false;
+      if (token && process.env.JWT_SECRET) {
+        try {
+          const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
+          if (decoded?.id) {
+            const user = await (User as any).findById(decoded.id).select("isSuperUser");
+            if (user?.isSuperUser) {
+              isSuperUser = true;
+            }
+          }
+        } catch {}
+      }
+
+      if (!isSuperUser) {
+        return NextResponse.json({ success: false, error: "Box not found" }, { status: 404 });
+      }
     }
 
     return NextResponse.json({ success: true, data: box });
@@ -36,15 +58,22 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const token = tokenCookie.value;
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
 
-    if (!decoded) {
+    if (!decoded || !decoded.id) {
       return NextResponse.json({ success: false, error: "Unauthorized: Invalid token" }, { status: 401 });
     }
 
+    const user = await (User as any).findById(decoded.id);
     const body = await req.json();
-    console.log("Request body:", body);
+
+    // Si se intenta modificar isHidden, validar que sea superadmin
+    if (body.isHidden !== undefined && !user?.isSuperUser) {
+      return NextResponse.json(
+        { success: false, error: "Permiso denegado: Solo super admin puede modificar la visibilidad de la caja" },
+        { status: 403 }
+      );
+    }
 
     const updatedBox = await (Box as any).findByIdAndUpdate(id, body, { new: true, runValidators: true });
-    console.log("Updated box:", updatedBox);
 
     if (!updatedBox) {
       return NextResponse.json({ success: false, error: "Box not found" }, { status: 404 });
