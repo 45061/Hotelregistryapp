@@ -62,15 +62,33 @@ export default function BoxId({ params }: { params: { id: string } }) {
   const { charge } = useSelector((state: any) => state.dateReducer);
   const { existingBalance } = useSelector((state: any) => state.boxReducer);
 
+  const canAccessBox = Boolean(
+    user &&
+    !user.isWaitress &&
+    (user.authorized || user.isAdmin || user.isSuperUser)
+  );
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await fetch("/api/auth/me");
         if (res.ok) {
           const userData = await res.json();
-          setUser(userData.data);
-        } else {
+          const currentUser = userData.data;
+          const isAllowed = Boolean(
+            currentUser &&
+            !currentUser.isWaitress &&
+            (currentUser.authorized || currentUser.isAdmin || currentUser.isSuperUser)
+          );
+          if (!isAllowed) {
+            router.push("/unauthorized");
+            return;
+          }
+          setUser(currentUser);
+        } else if (res.status === 401) {
           router.push("/login");
+        } else {
+          router.push("/unauthorized");
         }
       } catch (error) {
         router.push("/login");
@@ -82,7 +100,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
   }, [router]);
 
   useEffect(() => {
-    if (!loadingUser && user) {
+    if (!loadingUser && canAccessBox) {
       const fetchBox = async () => {
         await fetch(`/api/box/boxrefresh`, {
           method: "GET",
@@ -133,7 +151,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
       };
       fetchWithdraw();
     }
-  }, [charge, loadingUser, user, thisIsTheBox, router, dispatch]);
+  }, [charge, loadingUser, canAccessBox, thisIsTheBox, router, dispatch]);
 
   const handleCloseBox = async () => {
     try {
@@ -197,7 +215,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
     );
   }
 
-  if (!user) {
+  if (!user || !canAccessBox) {
     return null;
   }
 

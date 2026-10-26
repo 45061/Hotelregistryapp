@@ -64,6 +64,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   await dbConnect();
 
   try {
+    getReservationAuthUser(req);
     const reservation = await (Reservation as any)
       .findById(params.id)
       .populate("roomId", "roomNumber roomType hotel")
@@ -76,6 +77,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ success: true, data: reservation });
   } catch (error: any) {
     console.error("Calendar reservation detail error:", error);
+    if (error.message?.startsWith("Unauthorized")) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 401 });
+    }
     return NextResponse.json(
       { success: false, error: error.message || "Server error" },
       { status: 500 }

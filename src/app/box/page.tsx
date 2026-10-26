@@ -24,11 +24,17 @@ const BoxPage: React.FC = () => {
           router.push('/login');
         } else {
           const data = await res.json();
-          if (!data.data || !data.data.authorized) {
+          const currentUser = data.data;
+          const isAllowed = Boolean(
+            currentUser &&
+            !currentUser.isWaitress &&
+            (currentUser.authorized || currentUser.isAdmin || currentUser.isSuperUser)
+          );
+          if (!isAllowed) {
             toast.error('No tienes permisos para acceder a esta página.');
             router.push('/unauthorized');
           } else {
-            setUser(data.data);
+            setUser(currentUser);
           }
         }
       } catch (error) {

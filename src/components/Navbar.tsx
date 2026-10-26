@@ -24,6 +24,12 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
   const [isBoxModalOpen, setIsBoxModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
+  const canAccessBoxAndCalendar = Boolean(
+    user &&
+    !user.isWaitress &&
+    (user.authorized || user.isAdmin || user.isSuperUser)
+  );
+
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
   };
@@ -45,7 +51,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
   };
 
   useEffect(() => {
-    if (user && (user.authorized || user.isWaitress)) {
+    if (canAccessBoxAndCalendar) {
       fetchOpenBoxes();
       const interval = setInterval(fetchOpenBoxes, 30000);
       const handleFocus = () => fetchOpenBoxes();
@@ -54,8 +60,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
         clearInterval(interval);
         window.removeEventListener("focus", handleFocus);
       };
+    } else {
+      setOpenBoxes([]);
     }
-  }, [user, pathname]);
+  }, [canAccessBoxAndCalendar, pathname]);
 
   const handleGoToBox = () => {
     if (openBoxes.length === 1) {
@@ -108,10 +116,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
       </div>
 
       {/* Actions & Navigation */}
-      {user && (user.authorized || user.isWaitress) && (
+      {user && (user.authorized || user.isWaitress || user.isAdmin || user.isSuperUser) && (
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Botón Ir a Caja si hay cajas abiertas */}
-          {openBoxes.length > 0 && (
+          {/* Botón Ir a Caja si hay cajas abiertas y tiene permisos */}
+          {canAccessBoxAndCalendar && openBoxes.length > 0 && (
             <button
               type="button"
               onClick={handleGoToBox}
@@ -188,13 +196,15 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
                   </Link>
                 )}
 
-                <Link
-                  href="/calendar"
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-verde-principal/10 hover:text-verde-principal font-medium transition-colors"
-                  onClick={closeDropdown}
-                >
-                  <span>Calendario de Reservas</span>
-                </Link>
+                {canAccessBoxAndCalendar && (
+                  <Link
+                    href="/calendar"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-verde-principal/10 hover:text-verde-principal font-medium transition-colors"
+                    onClick={closeDropdown}
+                  >
+                    <span>Calendario de Reservas</span>
+                  </Link>
+                )}
 
                 {(user.authorized || user.isWaitress) && (
                   <Link
@@ -206,7 +216,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
                   </Link>
                 )}
 
-                {user.authorized && (
+                {canAccessBoxAndCalendar && (
                   <Link
                     href="/box"
                     className="flex items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-verde-principal/10 hover:text-verde-principal font-medium transition-colors"

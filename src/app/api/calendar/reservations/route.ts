@@ -73,6 +73,7 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   try {
+    getReservationAuthUser(req);
     const { searchParams } = new URL(req.url);
     const startParam = searchParams.get("start");
     const endParam = searchParams.get("end");
@@ -236,6 +237,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Calendar reservations error:", error);
+    if (error.message?.startsWith("Unauthorized")) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 401 });
+    }
     return NextResponse.json(
       { success: false, error: error.message || "Server error" },
       { status: 500 }

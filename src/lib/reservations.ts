@@ -63,8 +63,14 @@ export function getReservationAuthUser(req: NextRequest): CalendarAuthUser {
 
   const decoded = jwt.verify(tokenCookie.value, process.env.JWT_SECRET!) as CalendarAuthUser;
 
-  if (!decoded?.id || (!decoded.authorized && !decoded.isWaitress)) {
-    throw new Error("Unauthorized: Invalid token");
+  const isAllowed = Boolean(
+    decoded?.id &&
+      !decoded.isWaitress &&
+      (decoded.authorized || decoded.isAdmin || decoded.isSuperUser)
+  );
+
+  if (!isAllowed) {
+    throw new Error("Unauthorized: Access denied");
   }
 
   return decoded;

@@ -267,8 +267,14 @@ export default function CalendarPage() {
         const response = await fetch("/api/auth/me");
         if (response.ok) {
           const data = await response.json();
-          setUser(data.data);
-          if (!data.data.authorized && !data.data.isWaitress) {
+          const currentUser = data.data;
+          setUser(currentUser);
+          const isAllowed = Boolean(
+            currentUser &&
+            !currentUser.isWaitress &&
+            (currentUser.authorized || currentUser.isAdmin || currentUser.isSuperUser)
+          );
+          if (!isAllowed) {
             router.push("/unauthorized");
           }
         } else if (response.status === 401) {
@@ -286,15 +292,21 @@ export default function CalendarPage() {
     fetchUser();
   }, [router]);
 
+  const canAccessCalendar = Boolean(
+    user &&
+    !user.isWaitress &&
+    (user.authorized || user.isAdmin || user.isSuperUser)
+  );
+
   useEffect(() => {
-    if (loadingUser || !user || (!user.authorized && !user.isWaitress)) {
+    if (loadingUser || !canAccessCalendar) {
       return;
     }
     fetchCalendar();
-  }, [fetchCalendar, loadingUser, user]);
+  }, [fetchCalendar, loadingUser, canAccessCalendar]);
 
   useEffect(() => {
-    if (loadingUser || !user || (!user.authorized && !user.isWaitress)) {
+    if (loadingUser || !canAccessCalendar) {
       return;
     }
 
@@ -315,7 +327,7 @@ export default function CalendarPage() {
     };
 
     fetchRooms();
-  }, [loadingUser, user]);
+  }, [canAccessCalendar, loadingUser]);
 
   const goToday = () => setStart(formatInputDate(new Date()));
   const goPreviousRange = () =>
@@ -830,7 +842,7 @@ export default function CalendarPage() {
     );
   }
 
-  if (!user || (!user.authorized && !user.isWaitress)) {
+  if (!canAccessCalendar) {
     return null;
   }
 
