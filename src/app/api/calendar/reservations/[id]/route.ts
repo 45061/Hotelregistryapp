@@ -11,6 +11,29 @@ import {
   parseReservationDate,
 } from "@/lib/reservations";
 
+function sanitizeReservationPayments(payments: unknown) {
+  if (!Array.isArray(payments)) {
+    return [];
+  }
+
+  return payments
+    .map((p) => {
+      const item = p as Record<string, unknown>;
+      const amount = Math.max(0, Number(item?.amount || 0));
+      const paymentMethod = String(item?.paymentMethod || "Efectivo").trim();
+
+      return {
+        _id: item?._id ? String(item._id) : undefined,
+        amount,
+        paymentMethod,
+        date: item?.date ? new Date(String(item.date)) : new Date(),
+        notes: String(item?.notes || "").trim(),
+        registeredBy: String(item?.registeredBy || "").trim(),
+      };
+    })
+    .filter(Boolean);
+}
+
 function sanitizeReservationExtras(extras: unknown) {
   if (!Array.isArray(extras)) {
     return [];
@@ -145,6 +168,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     reservation.notes = body.notes !== undefined ? body.notes : reservation.notes;
     reservation.extras =
       body.extras !== undefined ? sanitizeReservationExtras(body.extras) : reservation.extras;
+    if (body.payments !== undefined) {
+      reservation.payments = sanitizeReservationPayments(body.payments);
+    }
     reservation.updatedBy = authUser.id;
 
     await reservation.save();

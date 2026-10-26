@@ -4,7 +4,7 @@ import dbConnect from "@/lib/db";
 import Room from "@/lib/models/room.model";
 import Reservation from "@/lib/models/reservation.model";
 import { syncReservationToGoogleSheets } from "@/lib/google-sheets";
-import { calculateReservationAmounts } from "@/lib/reservation-pricing";
+import { calculateReservationAmounts, calculateReservationBalance } from "@/lib/reservation-pricing";
 import {
   addDays,
   findReservationConflict,
@@ -19,6 +19,29 @@ import {
   startOfDay,
 } from "@/lib/reservations";
 import { normalizeStoredReservationDate } from "@/lib/reservation-dates";
+
+function sanitizeReservationPayments(payments: unknown) {
+  if (!Array.isArray(payments)) {
+    return [];
+  }
+
+  return payments
+    .map((p) => {
+      const item = p as Record<string, unknown>;
+      const amount = Math.max(0, Number(item?.amount || 0));
+      const paymentMethod = String(item?.paymentMethod || "Efectivo").trim();
+
+      return {
+        _id: item?._id ? String(item._id) : undefined,
+        amount,
+        paymentMethod,
+        date: item?.date ? new Date(String(item.date)) : new Date(),
+        notes: String(item?.notes || "").trim(),
+        registeredBy: String(item?.registeredBy || "").trim(),
+      };
+    })
+    .filter(Boolean);
+}
 
 function sanitizeReservationExtras(extras: unknown) {
   if (!Array.isArray(extras)) {
@@ -124,6 +147,8 @@ export async function GET(req: NextRequest) {
           ? reservation.roomId.roomType
           : reservation.roomTypeSnapshot;
 
+      const balance = calculateReservationBalance(reservation);
+
       const block = {
         id: String(reservation._id),
         guestName: reservation.guestName,
@@ -131,6 +156,7 @@ export async function GET(req: NextRequest) {
         email: reservation.email || "",
         hasIva: Boolean(reservation.hasIva),
         paymentMethod: reservation.paymentMethod || "",
+        notes: reservation.notes || "",
         guestCount: Number(reservation.guestCount || 1),
         roomPrice: Number(reservation.roomPrice || 0),
         travelerId: reservation.travelerId ? String(reservation.travelerId) : null,
@@ -151,6 +177,11 @@ export async function GET(req: NextRequest) {
         isClippedStart: startsBeforeRange,
         isClippedEnd: endsAfterRange,
         colorKey: getStatusColorKey(reservation.status),
+        payments: reservation.payments || [],
+        totalPrice: balance.totalPrice,
+        totalPaid: balance.totalPaid,
+        pendingDebt: balance.pendingDebt,
+        hasPendingDebt: balance.hasPendingDebt,
       };
 
       if (!roomId) {
@@ -289,6 +320,7 @@ export async function POST(req: NextRequest) {
       source: body.source || "",
       notes: body.notes || "",
       extras,
+      payments: sanitizeReservationPayments(body.payments),
       createdBy: authUser.id,
       updatedBy: authUser.id,
     });

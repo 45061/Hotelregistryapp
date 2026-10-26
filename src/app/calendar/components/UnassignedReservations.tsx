@@ -63,11 +63,38 @@ export const UnassignedReservations: React.FC<UnassignedReservationsProps> = ({
             draggable
             onDragStart={() => handleDragStart(reservation.id)}
             onDragEnd={handleDragEnd}
-            className={`rounded-lg border px-3 py-2 text-sm shadow-sm transition ${colorClasses(
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm shadow-sm transition ${colorClasses(
               reservation.colorKey
             )}`}
+            title={`${reservation.guestName} · ${reservation.checkIn.slice(0, 10)}${
+              reservation.hasPendingDebt
+                ? ` · 🚩 Deuda pendiente: $${reservation.pendingDebt?.toLocaleString("es-CO")}`
+                : ""
+            }`}
           >
-            {reservation.guestName} · {reservation.checkIn.slice(0, 10)}
+            <span>
+              {reservation.guestName} · {reservation.checkIn.slice(0, 10)}
+            </span>
+            {reservation.hasPendingDebt ? (
+              <span
+                className="inline-flex items-center gap-0.5 rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm ring-1 ring-white"
+                title={`Deuda pendiente: $${reservation.pendingDebt?.toLocaleString("es-CO")}`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="h-2.5 w-2.5"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.5V14a.75.75 0 0 1-.75.75H4.5v6.5a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Deuda
+              </span>
+            ) : null}
           </button>
         ))}
       </div>

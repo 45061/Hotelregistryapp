@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { calculateReservationAmounts } from "@/lib/reservation-pricing";
+import { calculateReservationAmounts, calculateReservationBalance } from "@/lib/reservation-pricing";
 import {
   addDays,
   createLocalDateFromDayString,
@@ -20,6 +20,7 @@ import {
   ReservationBlock,
   ReservationExtraDraft,
   ReservationFormState,
+  ReservationPayment,
   RoomOption,
 } from "./types";
 import {
@@ -53,6 +54,7 @@ export default function CalendarPage() {
   const [activeReservationSection, setActiveReservationSection] = useState("DETALLES");
   const [reservationExtras, setReservationExtras] = useState<ReservationExtraDraft[]>([]);
   const [reservationExtraDrafts, setReservationExtraDrafts] = useState<ReservationExtraDraft[]>([]);
+  const [reservationPayments, setReservationPayments] = useState<ReservationPayment[]>([]);
   const [editingReservationId, setEditingReservationId] = useState<string | null>(null);
   const [isLegacyReservationDraft, setIsLegacyReservationDraft] = useState(false);
   const [savingReservation, setSavingReservation] = useState(false);
@@ -141,6 +143,7 @@ export default function CalendarPage() {
 
       const blockStart = checkIn < rangeStartDate ? rangeStartDate : checkIn;
       const blockEnd = checkOut > rangeEndDate ? rangeEndDate : checkOut;
+      const balance = calculateReservationBalance(reservation);
 
       return {
         id: String(reservation._id || reservation.id),
@@ -167,6 +170,11 @@ export default function CalendarPage() {
         isClippedStart: checkIn < rangeStartDate,
         isClippedEnd: checkOut > rangeEndDate,
         colorKey: getStatusColorKey(reservation.status),
+        payments: reservation.payments || [],
+        totalPrice: balance.totalPrice,
+        totalPaid: balance.totalPaid,
+        pendingDebt: balance.pendingDebt,
+        hasPendingDebt: balance.hasPendingDebt,
       };
     },
     [hotel, rangeEndDate, rangeStartDate, rooms]
@@ -321,6 +329,7 @@ export default function CalendarPage() {
     setActiveReservationSection("DETALLES");
     setReservationExtras([]);
     setReservationExtraDrafts([]);
+    setReservationPayments([]);
     setReservationForm(createInitialReservationForm(start, hotel));
   };
 
@@ -333,6 +342,7 @@ export default function CalendarPage() {
     if (!reservation.isPersisted) {
       setEditingReservationId(null);
       setIsLegacyReservationDraft(true);
+      setReservationPayments([]);
       setReservationForm({
         guestName: reservation.guestName || "",
         phoneNumber: reservation.phoneNumber || "",
@@ -371,6 +381,18 @@ export default function CalendarPage() {
       setIsLegacyReservationDraft(false);
       setReservationExtras(mapExtrasToDrafts(persistedReservation.extras));
       setReservationExtraDrafts([]);
+      setReservationPayments(
+        Array.isArray(persistedReservation.payments)
+          ? persistedReservation.payments.map((p: any) => ({
+              _id: p._id ? String(p._id) : undefined,
+              amount: Number(p.amount || 0),
+              paymentMethod: String(p.paymentMethod || "Efectivo"),
+              date: p.date ? String(p.date).slice(0, 10) : new Date().toISOString().slice(0, 10),
+              notes: p.notes || "",
+              registeredBy: p.registeredBy || "",
+            }))
+          : []
+      );
       setReservationForm({
         guestName: persistedReservation.guestName || "",
         phoneNumber: persistedReservation.phoneNumber || "",
@@ -414,6 +436,81 @@ export default function CalendarPage() {
     setReservationForm((current) => ({ ...current, [name]: nextValue }));
   };
 
+  const handleAddPayment = async (payment: ReservationPayment) => {
+    const updatedPayments = [...reservationPayments, payment];
+    setReservationPayments(updatedPayments);
+
+    if (editingReservationId) {
+      try {
+        const serializedExtras = serializeReservationExtras([
+          ...reservationExtras,
+          ...reservationExtraDrafts,
+        ]);
+        const payload = {
+          ...reservationForm,
+          guestCount: Number(reservationForm.guestCount || 1),
+          roomPrice: Number(reservationForm.roomPrice || 0),
+          roomId: reservationForm.roomId || null,
+          extras: serializedExtras,
+          payments: updatedPayments,
+        };
+
+        const response = await fetch(`/api/calendar/reservations/${editingReservationId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          applyReservationToState(data.data);
+        }
+      } catch (error) {
+        console.error("Error auto-updating reservation with new payment:", error);
+      }
+    }
+  };
+
+  const handleRemovePayment = async (index: number) => {
+    const updatedPayments = reservationPayments.filter((_, i) => i !== index);
+    setReservationPayments(updatedPayments);
+    toast("Pago eliminado.", { icon: "ℹ️" });
+
+    if (editingReservationId) {
+      try {
+        const serializedExtras = serializeReservationExtras([
+          ...reservationExtras,
+          ...reservationExtraDrafts,
+        ]);
+        const payload = {
+          ...reservationForm,
+          guestCount: Number(reservationForm.guestCount || 1),
+          roomPrice: Number(reservationForm.roomPrice || 0),
+          roomId: reservationForm.roomId || null,
+          extras: serializedExtras,
+          payments: updatedPayments,
+        };
+
+        const response = await fetch(`/api/calendar/reservations/${editingReservationId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          applyReservationToState(data.data);
+        }
+      } catch (error) {
+        console.error("Error auto-updating reservation after removing payment:", error);
+      }
+    }
+  };
+
   const handleReservationSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSavingReservation(true);
@@ -429,6 +526,7 @@ export default function CalendarPage() {
         roomPrice: Number(reservationForm.roomPrice || 0),
         roomId: reservationForm.roomId || null,
         extras: serializedExtras,
+        payments: reservationPayments,
       };
 
       const response = await fetch(
@@ -453,6 +551,7 @@ export default function CalendarPage() {
 
       setReservationExtras(mapExtrasToDrafts(data.data?.extras));
       setReservationExtraDrafts([]);
+      setReservationPayments([]);
       toast.success(editingReservationId ? "Reserva actualizada." : "Reserva creada.");
       applyReservationToState(data.data);
       setIsReservationModalOpen(false);
@@ -816,6 +915,9 @@ export default function CalendarPage() {
         handleRemoveReservationExtra={handleRemoveReservationExtra}
         handleRemoveSavedReservationExtra={handleRemoveSavedReservationExtra}
         handleReservationExtraChange={handleReservationExtraChange}
+        reservationPayments={reservationPayments}
+        onAddPayment={handleAddPayment}
+        onRemovePayment={handleRemovePayment}
         pricingPreview={pricingPreview}
         estimatedTaxValue={estimatedTaxValue}
         savedExtrasTotal={savedExtrasTotal}

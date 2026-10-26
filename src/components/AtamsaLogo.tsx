@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import logoImg from "../../public/logo.png";
 
 interface AtamsaLogoProps {
   isLarge?: boolean;
@@ -14,22 +15,21 @@ const AtamsaLogo: React.FC<AtamsaLogoProps> = ({
 }) => {
   let effectiveSize = size || (isLarge ? "large" : "medium");
 
-  const dimensions = {
-    small: { width: 44, height: 44, defaultClass: "h-11" },
-    medium: { width: 80, height: 80, defaultClass: "h-20" },
-    large: { width: 160, height: 160, defaultClass: "h-40" },
+  const heightClass = {
+    small: "h-11 max-w-[140px]",
+    medium: "h-20 max-w-[240px]",
+    large: "h-32 sm:h-40 max-w-[340px]",
   }[effectiveSize];
 
   return (
-    <Image
-      src="/logo.png"
-      alt="Logo ATAMSA"
-      width={dimensions.width}
-      height={dimensions.height}
-      className={`${dimensions.defaultClass} w-auto object-contain ${className}`.trim()}
-      priority
-      unoptimized
-    />
+    <div className={`inline-flex items-center justify-center ${className}`.trim()}>
+      <Image
+        src={logoImg}
+        alt="Logo ATAMSA"
+        className={`${heightClass} w-auto object-contain`}
+        priority
+      />
+    </div>
   );
 };
 

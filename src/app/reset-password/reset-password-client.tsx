@@ -69,12 +69,12 @@ export default function ResetPasswordClient() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md border border-stone-200">
         <div className="flex justify-center">
-          <AtamsaLogo />
+          <AtamsaLogo size="medium" />
         </div>
 
-        <h1 className="mt-6 text-center font-heading text-3xl font-bold text-gray-900">
+        <h1 className="mt-6 text-center font-heading text-3xl font-bold text-stone-900">
           Restablecer contraseña
         </h1>
 

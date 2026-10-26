@@ -6,6 +6,15 @@ export type CalendarDay = {
   monthShort: string;
 };
 
+export type ReservationPayment = {
+  _id?: string;
+  amount: number;
+  paymentMethod: string;
+  date: string;
+  notes?: string;
+  registeredBy?: string;
+};
+
 export type ReservationBlock = {
   id: string;
   guestName: string;
@@ -31,6 +40,11 @@ export type ReservationBlock = {
   isClippedStart: boolean;
   isClippedEnd: boolean;
   colorKey: string;
+  payments?: ReservationPayment[];
+  totalPrice?: number;
+  totalPaid?: number;
+  pendingDebt?: number;
+  hasPendingDebt?: boolean;
 };
 
 export type CalendarRoom = {

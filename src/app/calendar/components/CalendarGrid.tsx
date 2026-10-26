@@ -151,8 +151,33 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                       title={`${reservation.guestName} · ${reservation.checkIn.slice(
                         0,
                         10
-                      )} → ${reservation.checkOut.slice(0, 10)}`}
+                      )} → ${reservation.checkOut.slice(0, 10)}${
+                        reservation.hasPendingDebt
+                          ? ` · 🚩 Deuda pendiente: $${reservation.pendingDebt?.toLocaleString("es-CO")}`
+                          : ""
+                      }`}
                     >
+                      {reservation.hasPendingDebt ? (
+                        <div
+                          className="pointer-events-none absolute -top-2 -right-1.5 z-10 flex items-center gap-1 rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-md ring-2 ring-white"
+                          title={`Deuda pendiente: $${reservation.pendingDebt?.toLocaleString("es-CO")}`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="h-2.5 w-2.5 shrink-0"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.5V14a.75.75 0 0 1-.75.75H4.5v6.5a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="tracking-tight">Deuda</span>
+                        </div>
+                      ) : null}
+
                       <button
                         type="button"
                         draggable={false}
@@ -182,7 +207,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                         type="button"
                         draggable={false}
                         onClick={() => openEditReservationModal(reservation)}
-                        className="min-w-0 flex-1 px-2.5 text-left"
+                        className={`min-w-0 flex-1 px-2.5 text-left ${
+                          reservation.hasPendingDebt ? "pr-12" : ""
+                        }`}
                       >
                         <span className="block truncate">{reservation.guestName}</span>
                         <span className="block truncate text-[11px] font-medium text-white/85">
@@ -268,7 +295,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                             </div>
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
-                                Valor
+                                Tarifa base
                               </p>
                               <p className="mt-1 font-medium text-stone-700">
                                 {reservation.roomPrice
@@ -276,6 +303,73 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                                   : "Sin valor"}
                               </p>
                             </div>
+                          </div>
+
+                          <div className="mt-3 rounded-xl border border-stone-200 bg-stone-50/90 p-3 text-sm">
+                            <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                                Estado de pago
+                              </p>
+                              {reservation.hasPendingDebt ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-700">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    className="h-3 w-3"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.5V14a.75.75 0 0 1-.75.75H4.5v6.5a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  Deuda pendiente
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    className="h-3 w-3"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  Al día / Pagada
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="mt-2.5 grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-stone-400 font-medium">Total reserva:</span>
+                                <p className="mt-0.5 font-bold text-stone-800">
+                                  ${(reservation.totalPrice ?? reservation.roomPrice ?? 0).toLocaleString("es-CO")}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-stone-400 font-medium">Total abonado:</span>
+                                <p className="mt-0.5 font-bold text-emerald-700">
+                                  ${(reservation.totalPaid ?? 0).toLocaleString("es-CO")}
+                                </p>
+                              </div>
+                            </div>
+
+                            {reservation.hasPendingDebt ? (
+                              <div className="mt-2.5 flex items-center justify-between rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-rose-800">
+                                <span className="text-xs font-bold flex items-center gap-1">
+                                  🚩 Saldo pendiente:
+                                </span>
+                                <span className="text-sm font-extrabold text-rose-700">
+                                  ${(reservation.pendingDebt ?? 0).toLocaleString("es-CO")}
+                                </span>
+                              </div>
+                            ) : null}
                           </div>
 
                           <div className="mt-3 border-t border-stone-100 pt-3 text-sm">

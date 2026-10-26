@@ -10,8 +10,16 @@ const oswald = Oswald({ subsets: ['latin'], weight: ['700'], variable: '--font-o
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata = {
-  title: 'ATAMSA Traveler Registry',
-  description: 'Registry system for ATAMSA',
+  title: 'ATAMSA - Registro & Control Hotelero',
+  description: 'Sistema de control hotelero y registro de reservas ATAMSA',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+    shortcut: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

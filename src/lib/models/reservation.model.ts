@@ -15,6 +15,15 @@ export interface IReservationExtra {
   totalValue: number;
 }
 
+export interface IReservationPayment {
+  _id?: string;
+  amount: number;
+  paymentMethod: string;
+  date: Date;
+  notes?: string;
+  registeredBy?: string;
+}
+
 export interface IReservation extends Document {
   guestName: string;
   phoneNumber?: string;
@@ -37,10 +46,22 @@ export interface IReservation extends Document {
   source?: string;
   notes?: string;
   extras: IReservationExtra[];
+  payments: IReservationPayment[];
   sheetRowId?: string;
   createdBy?: mongoose.Types.ObjectId | null;
   updatedBy?: mongoose.Types.ObjectId | null;
 }
+
+const reservationPaymentSchema = new Schema<IReservationPayment>(
+  {
+    amount: { type: Number, required: true, min: 0 },
+    paymentMethod: { type: String, required: true, trim: true },
+    date: { type: Date, default: Date.now },
+    notes: { type: String, trim: true, default: "" },
+    registeredBy: { type: String, trim: true, default: "" },
+  },
+  { _id: true, timestamps: true }
+);
 
 const reservationExtraSchema = new Schema<IReservationExtra>(
   {
@@ -79,6 +100,7 @@ const reservationSchema = new Schema<IReservation>(
     source: { type: String, trim: true },
     notes: { type: String, trim: true },
     extras: { type: [reservationExtraSchema], default: [] },
+    payments: { type: [reservationPaymentSchema], default: [] },
     sheetRowId: { type: String, trim: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
