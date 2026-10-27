@@ -43,6 +43,12 @@ La app envía payloads con estas acciones:
 - `bulk_upsert`: sincroniza varias reservas
 - `delete`: preparado para eliminación futura
 
+### Ventana activa y Respaldo histórico mensual (Backup)
+- **Ventana activa:** Se sincronizan exclusivamente las reservas correspondientes al **mes actual y los dos meses siguientes**.
+- **Hojas de respaldo mensuales:** Las reservas de meses anteriores (con `checkOut` anterior al día 1 del mes actual) **no se pierden ni se eliminan**: se trasladan automáticamente a pestañas de respaldo identificadas por mes y año (ejemplo: `Historial Septiembre 2026`, `Historial Octubre 2026`).
+- Cada hoja de respaldo cuenta con los mismos encabezados y evita duplicados al archivar.
+- De esta manera, las hojas activas (`Reservations`, `OPORTO` y `NATURAL`) permanecen limpias y veloces, conservando todo el histórico respaldado mes a mes dentro del mismo archivo de Google Sheets.
+
 Las columnas escritas en la hoja son:
 
 - `reservationId`

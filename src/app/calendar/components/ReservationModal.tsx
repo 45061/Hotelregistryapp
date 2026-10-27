@@ -995,7 +995,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                     </div>
 
                     <div className="rounded-xl border border-verde-principal/10 bg-verde-principal/5 px-4 py-4">
-                      <label className="flex items-center gap-3 text-sm font-medium text-stone-700">
+                      <label className="flex items-center gap-3 text-sm font-medium text-stone-700 cursor-pointer">
                         <input
                           type="checkbox"
                           name="hasIva"
@@ -1003,27 +1003,21 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                           onChange={handleReservationFormChange}
                           className="h-4 w-4 rounded border-stone-300 text-verde-principal focus:ring-verde-principal/30"
                         />
-                        Incluir impuestos / IVA
+                        Incluir impuestos / IVA en habitación
                       </label>
                     </div>
 
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-stone-700">
-                        Forma de pago
+                    <div className="rounded-xl border border-verde-principal/10 bg-verde-principal/5 px-4 py-4">
+                      <label className="flex items-center gap-3 text-sm font-medium text-stone-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="hasIvaExtras"
+                          checked={Boolean(reservationForm.hasIvaExtras)}
+                          onChange={handleReservationFormChange}
+                          className="h-4 w-4 rounded border-stone-300 text-verde-principal focus:ring-verde-principal/30"
+                        />
+                        Extras llevan impuestos / IVA
                       </label>
-                      <select
-                        name="paymentMethod"
-                        value={reservationForm.paymentMethod}
-                        onChange={handleReservationFormChange}
-                        className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base shadow-sm focus:border-verde-principal focus:outline-none focus:ring-2 focus:ring-verde-principal/20"
-                      >
-                        <option value="">Selecciona una opción</option>
-                        {paymentMethodOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
                     </div>
                   </div>
 
@@ -1099,10 +1093,15 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                         : reservationForm.status.replaceAll("_", " ")}
                     </span>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                      {reservationForm.paymentMethod || "Sin forma de pago"}
+                      {reservationPayments.length > 0
+                        ? `Pago: ${Array.from(new Set(reservationPayments.map((p) => p.paymentMethod).filter(Boolean))).join(", ")}`
+                        : "Sin pagos"}
                     </span>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                      {reservationForm.hasIva ? "Con IVA" : "Sin IVA"}
+                      {reservationForm.hasIva ? "Hab: Con IVA" : "Hab: Sin IVA"}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                      {reservationForm.hasIvaExtras ? "Extras: Con IVA" : "Extras: Sin IVA"}
                     </span>
                   </div>
                 </div>

@@ -29,6 +29,7 @@ export interface IReservation extends Document {
   phoneNumber?: string;
   email?: string;
   hasIva: boolean;
+  hasIvaExtras: boolean;
   paymentMethod?: string;
   guestCount: number;
   roomPrice: number;
@@ -79,6 +80,7 @@ const reservationSchema = new Schema<IReservation>(
     phoneNumber: { type: String, trim: true, default: "" },
     email: { type: String, trim: true, lowercase: true, default: "" },
     hasIva: { type: Boolean, default: false },
+    hasIvaExtras: { type: Boolean, default: false },
     paymentMethod: { type: String, trim: true, default: "" },
     guestCount: { type: Number, default: 1, min: 1 },
     roomPrice: { type: Number, default: 0, min: 0 },

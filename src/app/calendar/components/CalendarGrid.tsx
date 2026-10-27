@@ -379,7 +379,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                                   IVA
                                 </p>
                                 <p className="mt-1 font-medium text-stone-700">
-                                  {reservation.hasIva ? "Sí" : "No"}
+                                  Hab: {reservation.hasIva ? "Sí" : "No"} | Extras: {reservation.hasIvaExtras ? "Sí" : "No"}
                                 </p>
                               </div>
                               <div>

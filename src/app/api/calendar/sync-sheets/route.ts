@@ -4,6 +4,7 @@ import dbConnect from "@/lib/db";
 import { getReservationAuthUser, parseReservationDate } from "@/lib/reservations";
 import {
   getReservationsForSheetsSync,
+  getSheetsAllowedDateRange,
   hasGoogleSheetsWebhook,
   syncReservationsBatchToGoogleSheets,
 } from "@/lib/google-sheets";
@@ -31,25 +32,20 @@ export async function POST(req: NextRequest) {
       filter.hotel = String(body.hotel);
     }
 
-    if (body.start || body.end) {
-      filter.checkIn = {};
-
-      if (body.end) {
-        filter.checkIn.$lt = parseReservationDate(body.end);
-      }
-
-      if (body.start) {
-        filter.checkOut = { $gt: parseReservationDate(body.start) };
-      }
-    }
+    // Enviar reservas históricas para respaldo y reservas activas hasta el fin de los 2 meses siguientes
+    const { startDate, endDate } = getSheetsAllowedDateRange();
+    filter.checkIn = { $lt: endDate };
 
     const reservations = await getReservationsForSheetsSync(filter);
-    await syncReservationsBatchToGoogleSheets(reservations, "bulk_upsert");
+    const syncResult = await syncReservationsBatchToGoogleSheets(reservations, "bulk_upsert");
 
     return NextResponse.json({
       success: true,
       data: {
         synced: reservations.length,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        skipped: syncResult.skipped ?? false,
       },
     });
   } catch (error: any) {

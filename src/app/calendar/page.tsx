@@ -151,6 +151,7 @@ export default function CalendarPage() {
         phoneNumber: reservation.phoneNumber || "",
         email: reservation.email || "",
         hasIva: Boolean(reservation.hasIva),
+        hasIvaExtras: Boolean(reservation.hasIvaExtras),
         paymentMethod: reservation.paymentMethod || "",
         notes: reservation.notes || "",
         guestCount: Number(reservation.guestCount || 1),
@@ -360,6 +361,7 @@ export default function CalendarPage() {
         phoneNumber: reservation.phoneNumber || "",
         email: reservation.email || "",
         hasIva: Boolean(reservation.hasIva),
+        hasIvaExtras: Boolean(reservation.hasIvaExtras),
         paymentMethod: reservation.paymentMethod || "",
         guestCount: String(reservation.guestCount || 1),
         roomPrice: String(reservation.roomPrice || ""),
@@ -410,6 +412,7 @@ export default function CalendarPage() {
         phoneNumber: persistedReservation.phoneNumber || "",
         email: persistedReservation.email || "",
         hasIva: Boolean(persistedReservation.hasIva),
+        hasIvaExtras: Boolean(persistedReservation.hasIvaExtras),
         paymentMethod: persistedReservation.paymentMethod || "",
         guestCount: String(persistedReservation.guestCount || 1),
         roomPrice: String(persistedReservation.roomPrice || ""),
@@ -586,8 +589,6 @@ export default function CalendarPage() {
         },
         body: JSON.stringify({
           hotel: hotel || null,
-          start,
-          end,
         }),
       });
       const data = await response.json();
@@ -597,7 +598,9 @@ export default function CalendarPage() {
         return;
       }
 
-      toast.success(`Sincronización lista. Reservas enviadas: ${data.data.synced}.`);
+      toast.success(
+        `Sincronización lista: ${data.data.synced} reservas (mes actual y 2 meses siguientes).`
+      );
     } catch (error) {
       toast.error("Ocurrió un error al sincronizar con Google Sheets.");
     } finally {
@@ -723,6 +726,7 @@ export default function CalendarPage() {
             phoneNumber: reservation.phoneNumber || "",
             email: reservation.email || "",
             hasIva: Boolean(reservation.hasIva),
+            hasIvaExtras: Boolean(reservation.hasIvaExtras),
             paymentMethod: reservation.paymentMethod || "",
             guestCount: reservation.guestCount || 1,
             roomPrice: reservation.roomPrice || 0,
@@ -848,15 +852,17 @@ export default function CalendarPage() {
 
   const reservationPriceValue = Number(reservationForm.roomPrice || 0);
   const pricingPreview = calculateReservationAmounts(reservationPriceValue, reservationForm.hasIva);
-  const estimatedTaxValue = pricingPreview.ivaAmount;
-  const estimatedTotalValue = pricingPreview.roomPriceWithIva;
   const filledReservationExtras = reservationExtras.filter((extra) => extra.name.trim());
   const savedExtrasTotal = filledReservationExtras.reduce((sum, extra) => {
     const unitValue = Number(extra.unitValue || 0);
     const quantity = Number(extra.quantity || 0);
     return sum + unitValue * quantity;
   }, 0);
-  const estimatedReservationGrandTotal = estimatedTotalValue + savedExtrasTotal;
+  const extrasTaxValue = reservationForm.hasIvaExtras ? Math.round(savedExtrasTotal * 0.19) : 0;
+  const extrasTotalWithTax = savedExtrasTotal + extrasTaxValue;
+  const estimatedTaxValue = pricingPreview.ivaAmount + extrasTaxValue;
+  const estimatedTotalValue = pricingPreview.roomPriceWithIva;
+  const estimatedReservationGrandTotal = estimatedTotalValue + extrasTotalWithTax;
 
   return (
     <div className="min-h-screen bg-stone-100 p-4 md:p-6">

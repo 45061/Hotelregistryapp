@@ -142,6 +142,7 @@ export function createInitialReservationForm(startDate: string, hotelFilter: str
     phoneNumber: "",
     email: "",
     hasIva: false,
+    hasIvaExtras: false,
     paymentMethod: "",
     guestCount: "1",
     roomPrice: "",

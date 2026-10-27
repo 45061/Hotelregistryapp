@@ -28,6 +28,7 @@ export function calculateReservationAmounts(roomPrice: number, hasIva: boolean) 
 export function calculateReservationBalance(reservation: {
   roomPrice?: number;
   hasIva?: boolean;
+  hasIvaExtras?: boolean;
   roomPriceWithIva?: number;
   extras?: Array<{ totalValue?: number; unitValue?: number; quantity?: number }>;
   payments?: Array<{ amount?: number }>;
@@ -46,13 +47,16 @@ export function calculateReservationBalance(reservation: {
       : pricing.roomPriceWithIva
   );
 
-  const extrasTotal = (reservation.extras || []).reduce((sum, extra) => {
+  const extrasBase = (reservation.extras || []).reduce((sum, extra) => {
     const val = Number(extra?.totalValue);
     if (!Number.isNaN(val) && val > 0) return sum + val;
     const unit = Number(extra?.unitValue || 0);
     const qty = Number(extra?.quantity || 0);
     return sum + unit * qty;
   }, 0);
+
+  const extrasTax = reservation.hasIvaExtras ? Math.round(extrasBase * IVA_RATE) : 0;
+  const extrasTotal = Math.round(extrasBase + extrasTax);
 
   const totalPrice = Math.round(roomPriceWithIva + extrasTotal);
 
@@ -65,6 +69,8 @@ export function calculateReservationBalance(reservation: {
 
   return {
     roomPriceWithIva,
+    extrasBase,
+    extrasTax,
     extrasTotal,
     totalPrice,
     totalPaid,

@@ -156,6 +156,7 @@ export async function GET(req: NextRequest) {
         phoneNumber: reservation.phoneNumber || "",
         email: reservation.email || "",
         hasIva: Boolean(reservation.hasIva),
+        hasIvaExtras: Boolean(reservation.hasIvaExtras),
         paymentMethod: reservation.paymentMethod || "",
         notes: reservation.notes || "",
         guestCount: Number(reservation.guestCount || 1),
@@ -258,7 +259,7 @@ export async function POST(req: NextRequest) {
     const phoneNumber = String(body.phoneNumber || "").trim();
     const email = String(body.email || "").trim().toLowerCase();
     const hasIva = Boolean(body.hasIva);
-    const paymentMethod = String(body.paymentMethod || "").trim();
+    const hasIvaExtras = Boolean(body.hasIvaExtras);
     const hotel = String(body.hotel || "").trim();
     const guestCount = Math.max(1, Number(body.guestCount || 1));
     const roomPrice = Math.max(0, Number(body.roomPrice || 0));
@@ -267,6 +268,17 @@ export async function POST(req: NextRequest) {
     const checkOut = parseReservationDate(body.checkOut);
     const roomId = body.roomId ? String(body.roomId) : null;
     const extras = sanitizeReservationExtras(body.extras);
+    const payments = sanitizeReservationPayments(body.payments);
+    const methodsFromPayments = Array.from(
+      new Set(
+        payments
+          .map((p: any) => String(p.paymentMethod || "").trim())
+          .filter(Boolean)
+      )
+    );
+    const paymentMethod = methodsFromPayments.length > 0
+      ? methodsFromPayments.join(", ")
+      : String(body.paymentMethod || "").trim();
 
     if (!guestName || !hotel || Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime())) {
       return NextResponse.json(
@@ -307,6 +319,7 @@ export async function POST(req: NextRequest) {
       phoneNumber,
       email,
       hasIva,
+      hasIvaExtras,
       paymentMethod,
       guestCount,
       roomPrice,
@@ -324,7 +337,7 @@ export async function POST(req: NextRequest) {
       source: body.source || "",
       notes: body.notes || "",
       extras,
-      payments: sanitizeReservationPayments(body.payments),
+      payments,
       createdBy: authUser.id,
       updatedBy: authUser.id,
     });

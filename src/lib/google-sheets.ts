@@ -6,7 +6,15 @@ type ReservationLike = {
   phoneNumber?: string;
   email?: string;
   hasIva?: boolean;
+  hasIvaExtras?: boolean;
   paymentMethod?: string;
+  payments?: Array<{
+    amount?: number;
+    paymentMethod?: string;
+    date?: Date | string;
+    notes?: string;
+    registeredBy?: string;
+  }>;
   travelerId?: string | null;
   roomId?: string | null;
   roomNumberSnapshot?: string;
@@ -71,6 +79,22 @@ async function postWithRetry(url: string, payload: unknown) {
   throw lastError || new Error("Unknown Google Sheets sync error");
 }
 
+function getPaymentMethodFromPayments(reservation: ReservationLike): string {
+  if (Array.isArray(reservation.payments) && reservation.payments.length > 0) {
+    const methods = Array.from(
+      new Set(
+        reservation.payments
+          .map((p) => String(p?.paymentMethod || "").trim())
+          .filter(Boolean)
+      )
+    );
+    if (methods.length > 0) {
+      return methods.join(", ");
+    }
+  }
+  return reservation.paymentMethod || "";
+}
+
 function mapReservationPayload(reservation: ReservationLike) {
   return {
     reservationId: String(reservation._id),
@@ -78,7 +102,8 @@ function mapReservationPayload(reservation: ReservationLike) {
     phoneNumber: reservation.phoneNumber || "",
     email: reservation.email || "",
     hasIva: reservation.hasIva ?? false,
-    paymentMethod: reservation.paymentMethod || "",
+    hasIvaExtras: reservation.hasIvaExtras ?? false,
+    paymentMethod: getPaymentMethodFromPayments(reservation),
     guestCount: (reservation as any).guestCount ?? 1,
     roomPrice: (reservation as any).roomPrice ?? 0,
     ivaAmount: (reservation as any).ivaAmount ?? 0,
@@ -104,6 +129,45 @@ export function hasGoogleSheetsWebhook() {
   return Boolean(process.env.GOOGLE_SHEETS_WEBHOOK_URL);
 }
 
+/**
+ * Obtiene el rango de fechas permitido para sincronización con Google Sheets:
+ * - Mes actual (desde el día 1 a las 00:00:00)
+ * - Dos meses siguientes (hasta el final del mes + 2)
+ * - Nada anterior al inicio del mes actual
+ */
+export function getSheetsAllowedDateRange(referenceDate: Date = new Date()) {
+  const year = referenceDate.getFullYear();
+  const month = referenceDate.getMonth();
+  const startDate = new Date(year, month, 1, 0, 0, 0, 0);
+  const endDate = new Date(year, month + 3, 1, 0, 0, 0, 0);
+  return { startDate, endDate };
+}
+
+export function isReservationEligibleForSheets(
+  reservation: { checkIn: Date | string },
+  referenceDate: Date = new Date()
+): boolean {
+  const { endDate } = getSheetsAllowedDateRange(referenceDate);
+  const checkIn = reservation.checkIn instanceof Date ? reservation.checkIn : new Date(reservation.checkIn);
+  if (Number.isNaN(checkIn.getTime())) return false;
+  return checkIn < endDate;
+}
+
+export function isReservationInSheetsWindow(
+  reservation: { checkIn: Date | string; checkOut: Date | string },
+  referenceDate: Date = new Date()
+): boolean {
+  const { startDate, endDate } = getSheetsAllowedDateRange(referenceDate);
+  const checkIn = reservation.checkIn instanceof Date ? reservation.checkIn : new Date(reservation.checkIn);
+  const checkOut = reservation.checkOut instanceof Date ? reservation.checkOut : new Date(reservation.checkOut);
+
+  if (Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime())) {
+    return false;
+  }
+
+  return checkOut > startDate && checkIn < endDate;
+}
+
 export async function syncReservationToGoogleSheets(
   reservation: ReservationLike,
   action: SyncAction = "upsert"
@@ -112,6 +176,13 @@ export async function syncReservationToGoogleSheets(
 
   if (!webhookUrl) {
     return { skipped: true, reason: "GOOGLE_SHEETS_WEBHOOK_URL is not configured" };
+  }
+
+  if (action === "upsert" && !isReservationEligibleForSheets(reservation)) {
+    return {
+      skipped: true,
+      reason: "Reservation is beyond the 2 months following the current month",
+    };
   }
 
   const payload = {
@@ -134,14 +205,23 @@ export async function syncReservationsBatchToGoogleSheets(
     return { skipped: true, reason: "GOOGLE_SHEETS_WEBHOOK_URL is not configured" };
   }
 
+  const filteredReservations = reservations.filter((r) => isReservationEligibleForSheets(r));
+
+  if (filteredReservations.length === 0) {
+    return {
+      skipped: true,
+      reason: "No reservations fall into the eligible window",
+    };
+  }
+
   const payload = {
     action,
     sentAt: new Date().toISOString(),
-    reservations: reservations.map(mapReservationPayload),
+    reservations: filteredReservations.map(mapReservationPayload),
   };
 
   await postWithRetry(webhookUrl, payload);
-  return { skipped: false };
+  return { skipped: false, count: filteredReservations.length };
 }
 
 export async function getReservationsForSheetsSync(filter: Record<string, unknown> = {}) {

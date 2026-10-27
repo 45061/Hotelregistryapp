@@ -21,6 +21,7 @@ export type ReservationBlock = {
   phoneNumber: string;
   email: string;
   hasIva: boolean;
+  hasIvaExtras?: boolean;
   paymentMethod: string;
   notes: string;
   guestCount: number;
@@ -72,6 +73,7 @@ export type ReservationFormState = {
   phoneNumber: string;
   email: string;
   hasIva: boolean;
+  hasIvaExtras: boolean;
   paymentMethod: string;
   guestCount: string;
   roomPrice: string;

@@ -146,6 +146,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       body.email !== undefined ? String(body.email).trim().toLowerCase() : reservation.email;
     reservation.hasIva =
       body.hasIva !== undefined ? Boolean(body.hasIva) : reservation.hasIva;
+    reservation.hasIvaExtras =
+      body.hasIvaExtras !== undefined ? Boolean(body.hasIvaExtras) : reservation.hasIvaExtras;
     reservation.paymentMethod =
       body.paymentMethod !== undefined ? String(body.paymentMethod).trim() : reservation.paymentMethod;
     reservation.guestCount =
@@ -174,6 +176,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       body.extras !== undefined ? sanitizeReservationExtras(body.extras) : reservation.extras;
     if (body.payments !== undefined) {
       reservation.payments = sanitizeReservationPayments(body.payments);
+    }
+
+    const methodsFromPayments = Array.from(
+      new Set(
+        (reservation.payments || [])
+          .map((p: any) => String(p.paymentMethod || "").trim())
+          .filter(Boolean)
+      )
+    );
+    if (methodsFromPayments.length > 0) {
+      reservation.paymentMethod = methodsFromPayments.join(", ");
     }
     reservation.updatedBy = authUser.id;
 
