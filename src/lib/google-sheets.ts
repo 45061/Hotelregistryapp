@@ -151,13 +151,21 @@ export function getSheetsAllowedDateRange(referenceDate: Date = new Date()) {
 }
 
 export function isReservationEligibleForSheets(
-  reservation: { checkIn: Date | string },
+  reservation: { checkIn: Date | string; checkOut?: Date | string },
   referenceDate: Date = new Date()
 ): boolean {
-  const { endDate } = getSheetsAllowedDateRange(referenceDate);
+  const { startDate, endDate } = getSheetsAllowedDateRange(referenceDate);
   const checkIn = reservation.checkIn instanceof Date ? reservation.checkIn : new Date(reservation.checkIn);
   if (Number.isNaN(checkIn.getTime())) return false;
-  return checkIn < endDate;
+
+  if (reservation.checkOut) {
+    const checkOut = reservation.checkOut instanceof Date ? reservation.checkOut : new Date(reservation.checkOut);
+    if (!Number.isNaN(checkOut.getTime())) {
+      return checkOut > startDate && checkIn < endDate;
+    }
+  }
+
+  return checkIn >= startDate && checkIn < endDate;
 }
 
 export function isReservationInSheetsWindow(
