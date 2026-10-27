@@ -14,6 +14,7 @@ export interface IBox extends Document {
   cashReseived: mongoose.Schema.Types.ObjectId[];
   cashWithdrawn: mongoose.Schema.Types.ObjectId[];
   existingBalance: number;
+  isHidden?: boolean;
 }
 
 const boxSchema = new Schema(
@@ -52,6 +53,10 @@ const boxSchema = new Schema(
       type: [{ type: Schema.Types.ObjectId, ref: "Withdraw" }],
     },
     existingBalance: Number,
+    isHidden: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -5,6 +5,7 @@ import '@/lib/models/user.model';
 import '@/lib/models/box.model';
 import '@/lib/models/payment.model';
 import '@/lib/models/withdraw.model';
+import '@/lib/models/reservation.model';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

@@ -250,6 +250,7 @@ export default function TravelerDetailsPage() {
                   onClick={() => setIsImageModalOpen(true)}
                   className="group text-left"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={traveler.documentImageUrl}
                     alt={`Documento de ${traveler.name}`}
@@ -343,6 +344,7 @@ export default function TravelerDetailsPage() {
         title="Vista previa del documento"
       >
         {traveler.documentImageUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={traveler.documentImageUrl}
             alt={`Documento ampliado de ${traveler.name}`}

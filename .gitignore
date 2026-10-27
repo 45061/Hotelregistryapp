@@ -31,3 +31,7 @@ yarn-error.log*
 
 # Gemini AI Agent specific files
 gemini/
+
+# OS and build artifacts
+.DS_Store
+*.tsbuildinfo

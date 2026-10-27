@@ -54,16 +54,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 py-8">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-2xl shadow-md border border-stone-200">
         <div className="flex justify-center">
-          <AtamsaLogo />
+          <AtamsaLogo size="medium" />
         </div>
-        <h1 className="font-heading text-3xl font-bold text-center text-gray-900">Create Account</h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <h1 className="font-heading text-3xl font-bold text-center text-stone-900">Crear Cuenta</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-              First Name
+              Nombre
             </label>
             <input
               id="firstName"
@@ -76,7 +76,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-              Last Name
+              Apellido
             </label>
             <input
               id="lastName"
@@ -89,7 +89,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
-              Phone Number
+              Teléfono
             </label>
             <input
               id="phoneNumber"
@@ -102,7 +102,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Email
+              Correo Electrónico
             </label>
             <input
               id="email"
@@ -118,7 +118,7 @@ export default function RegisterPage() {
               htmlFor="password"
               className="text-sm font-medium text-gray-700"
             >
-              Password
+              Contraseña
             </label>
             <input
               id="password"
@@ -134,7 +134,7 @@ export default function RegisterPage() {
               htmlFor="confirmPassword"
               className="text-sm font-medium text-gray-700"
             >
-              Confirm Password
+              Confirmar Contraseña
             </label>
             <input
               id="confirmPassword"
@@ -151,14 +151,14 @@ export default function RegisterPage() {
               type="submit"
               className="w-full px-4 py-2 text-sm font-medium text-white bg-verde-principal border border-transparent rounded-md shadow-sm hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-verde-principal"
             >
-              Register
+              Registrarse
             </button>
           </div>
         </form>
         <p className="mt-4 text-sm text-center text-gray-600">
-          Already have an account?{' '}
+          ¿Ya tienes una cuenta?{' '}
           <Link href="/login" className="font-medium text-verde-principal hover:text-opacity-80">
-            Login
+            Inicia sesión aquí
           </Link>
         </p>
       </div>

@@ -86,13 +86,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-2xl shadow-md border border-stone-200">
         <div className="flex justify-center">
-          <AtamsaLogo />
+          <AtamsaLogo size="medium" />
         </div>
-        <h1 className="font-heading text-3xl font-bold text-center text-gray-900">
-          Registro Viajero Login
+        <h1 className="font-heading text-3xl font-bold text-center text-stone-900">
+          Iniciar Sesión
         </h1>
         {showForgotPassword ? (
           <form onSubmit={handleForgotPassword} className="space-y-6">
