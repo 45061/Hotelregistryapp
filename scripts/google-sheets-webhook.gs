@@ -64,6 +64,14 @@ const MONTH_NAMES_ES = [
   'Diciembre',
 ];
 
+function doGet(e) {
+  return jsonResponse({
+    success: true,
+    message: 'Webhook de Google Sheets para ATAMSA activo y funcionando correctamente.',
+    timestamp: new Date().toISOString(),
+  }, 200);
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {

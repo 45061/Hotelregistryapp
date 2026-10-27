@@ -125,8 +125,15 @@ function mapReservationPayload(reservation: ReservationLike) {
   };
 }
 
-export function hasGoogleSheetsWebhook() {
-  return Boolean(process.env.GOOGLE_SHEETS_WEBHOOK_URL);
+const DEFAULT_GOOGLE_SHEETS_WEBHOOK_URL =
+  "https://script.google.com/macros/s/AKfycbzZX7r6seA3zHaoIwTOF_3yo38v2-HDgpTh-RyfmrR3q8RXOjcv3IbNvvDnj_9KcTghHQ/exec";
+
+export function getGoogleSheetsWebhookUrl(): string {
+  return (process.env.GOOGLE_SHEETS_WEBHOOK_URL || DEFAULT_GOOGLE_SHEETS_WEBHOOK_URL).trim();
+}
+
+export function hasGoogleSheetsWebhook(): boolean {
+  return Boolean(getGoogleSheetsWebhookUrl());
 }
 
 /**
@@ -172,7 +179,7 @@ export async function syncReservationToGoogleSheets(
   reservation: ReservationLike,
   action: SyncAction = "upsert"
 ) {
-  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const webhookUrl = getGoogleSheetsWebhookUrl();
 
   if (!webhookUrl) {
     return { skipped: true, reason: "GOOGLE_SHEETS_WEBHOOK_URL is not configured" };
@@ -199,7 +206,7 @@ export async function syncReservationsBatchToGoogleSheets(
   reservations: ReservationLike[],
   action: SyncAction = "bulk_upsert"
 ) {
-  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const webhookUrl = getGoogleSheetsWebhookUrl();
 
   if (!webhookUrl) {
     return { skipped: true, reason: "GOOGLE_SHEETS_WEBHOOK_URL is not configured" };
