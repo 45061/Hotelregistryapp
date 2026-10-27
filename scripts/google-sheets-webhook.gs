@@ -64,6 +64,14 @@ const MONTH_NAMES_ES = [
   'Diciembre',
 ];
 
+function doGet(e) {
+  return jsonResponse({
+    success: true,
+    message: 'Webhook de Google Sheets para ATAMSA activo y funcionando correctamente.',
+    timestamp: new Date().toISOString(),
+  }, 200);
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -270,7 +278,7 @@ function rebuildCalendarViews() {
   // Migrar cualquier hoja previa tabular de historial si existía
   migrateOldTabularHistorialSheets(spreadsheet, historicoSheet);
 
-  // 1. Renderizar vistas activas (OPORTO y NATURAL: mes actual y 2 siguientes)
+  // Renderizar vistas activas (OPORTO y NATURAL: únicamente mes actual y 2 siguientes)
   const activeReservations = getAllReservationsFromRawSheet();
   const activeRange = getAllowedDateWindowRange();
 
@@ -292,58 +300,85 @@ function rebuildCalendarViews() {
       activeRange
     );
   });
+}
 
-  // 2. Renderizar vistas de calendario históricas por mes y hotel
+function renderHistoricalCalendarViews() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const historicoSheet = getReservationsHistoricoSheet();
   const historicalReservations = getAllReservationsFromHistoricoSheet();
-  if (historicalReservations.length > 0) {
-    const monthMap = {};
-    historicalReservations.forEach(function (res) {
-      const date = res.checkOutDate || res.checkInDate;
-      if (date) {
-        const key = date.getFullYear() + '-' + date.getMonth();
-        monthMap[key] = { year: date.getFullYear(), month: date.getMonth() };
+
+  if (historicalReservations.length === 0) {
+    return;
+  }
+
+  const monthMap = {};
+  historicalReservations.forEach(function (res) {
+    const date = res.checkOutDate || res.checkInDate;
+    if (date) {
+      const key = date.getFullYear() + '-' + date.getMonth();
+      monthMap[key] = { year: date.getFullYear(), month: date.getMonth() };
+    }
+  });
+
+  const sortedMonthKeys = Object.keys(monthMap).sort(function (a, b) {
+    const partsA = a.split('-').map(Number);
+    const partsB = b.split('-').map(Number);
+    return partsA[0] !== partsB[0] ? partsA[0] - partsB[0] : partsA[1] - partsB[1];
+  });
+
+  sortedMonthKeys.forEach(function (key) {
+    const monthInfo = monthMap[key];
+    const monthRange = getMonthDateRange(monthInfo.year, monthInfo.month);
+
+    CALENDAR_SHEETS.forEach(function (config) {
+      const monthHotelReservations = historicalReservations
+        .filter(function (res) {
+          return (
+            res.hotel === config.hotel &&
+            res.checkOutDate > monthRange.start &&
+            res.checkInDate < monthRange.end
+          );
+        })
+        .sort(function (left, right) {
+          return left.checkInDate.getTime() - right.checkInDate.getTime();
+        });
+
+      if (monthHotelReservations.length > 0) {
+        const historicalSheetName = config.sheetName + ' - ' + MONTH_NAMES_ES[monthInfo.month] + ' ' + monthInfo.year;
+        const historicalHeaderLabel = config.headerLabel + ' (' + MONTH_NAMES_ES[monthInfo.month] + ' ' + monthInfo.year + ')';
+
+        renderCalendarGrid(
+          spreadsheet,
+          historicalSheetName,
+          historicalHeaderLabel,
+          config.hotel,
+          monthHotelReservations,
+          monthRange
+        );
       }
     });
+  });
+}
 
-    const sortedMonthKeys = Object.keys(monthMap).sort(function (a, b) {
-      const partsA = a.split('-').map(Number);
-      const partsB = b.split('-').map(Number);
-      return partsA[0] !== partsB[0] ? partsA[0] - partsB[0] : partsA[1] - partsB[1];
-    });
+function eliminarHojasHistoricas() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = spreadsheet.getSheets();
+  let count = 0;
 
-    sortedMonthKeys.forEach(function (key) {
-      const monthInfo = monthMap[key];
-      const monthRange = getMonthDateRange(monthInfo.year, monthInfo.month);
+  sheets.forEach(function (sheet) {
+    const name = sheet.getName();
+    const isHistoricalCalendar = (name.indexOf('OPORTO - ') === 0 || name.indexOf('NATURAL - ') === 0);
+    const isOldTabular = name.indexOf('Historial ') === 0;
 
-      CALENDAR_SHEETS.forEach(function (config) {
-        const monthHotelReservations = historicalReservations
-          .filter(function (res) {
-            return (
-              res.hotel === config.hotel &&
-              res.checkOutDate > monthRange.start &&
-              res.checkInDate < monthRange.end
-            );
-          })
-          .sort(function (left, right) {
-            return left.checkInDate.getTime() - right.checkInDate.getTime();
-          });
+    if (isHistoricalCalendar || isOldTabular) {
+      try {
+        spreadsheet.deleteSheet(sheet);
+        count += 1;
+      } catch (e) {}
+    }
+  });
 
-        if (monthHotelReservations.length > 0) {
-          const historicalSheetName = config.sheetName + ' - ' + MONTH_NAMES_ES[monthInfo.month] + ' ' + monthInfo.year;
-          const historicalHeaderLabel = config.headerLabel + ' (' + MONTH_NAMES_ES[monthInfo.month] + ' ' + monthInfo.year + ')';
-
-          renderCalendarGrid(
-            spreadsheet,
-            historicalSheetName,
-            historicalHeaderLabel,
-            config.hotel,
-            monthHotelReservations,
-            monthRange
-          );
-        }
-      });
-    });
-  }
+  SpreadsheetApp.getActiveSpreadsheet().toast('Se eliminaron ' + count + ' hojas de historial. Solo quedan las vistas activas.', 'ATAMSA', 5);
 }
 
 function migrateOldTabularHistorialSheets(spreadsheet, historicoSheet) {
@@ -822,8 +857,9 @@ function jsonResponse(payload, statusCode) {
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('ATAMSA')
-    .addItem('Archivar meses anteriores en hojas de respaldo', 'archivarMesesAnterioresManual')
-    .addItem('Reconstruir vistas de calendario', 'rebuildCalendarViews')
+    .addItem('Reconstruir vistas activas (Mes actual y 2 siguientes)', 'rebuildCalendarViews')
+    .addItem('Generar respaldo visual de meses anteriores', 'archivarMesesAnterioresManual')
+    .addItem('Eliminar hojas de historial (Dejar solo activas)', 'eliminarHojasHistoricas')
     .addToUi();
 }
 
@@ -831,5 +867,6 @@ function archivarMesesAnterioresManual() {
   const rawSheet = getReservationsSheet();
   pruneExpiredReservations(rawSheet);
   rebuildCalendarViews();
-  SpreadsheetApp.getActiveSpreadsheet().toast('Historial reconstruido en hojas de calendario con éxito.', 'ATAMSA', 5);
+  renderHistoricalCalendarViews();
+  SpreadsheetApp.getActiveSpreadsheet().toast('Historial de meses anteriores generado en hojas de calendario con éxito.', 'ATAMSA', 5);
 }

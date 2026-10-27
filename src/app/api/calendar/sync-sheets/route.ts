@@ -32,8 +32,9 @@ export async function POST(req: NextRequest) {
       filter.hotel = String(body.hotel);
     }
 
-    // Enviar reservas históricas para respaldo y reservas activas hasta el fin de los 2 meses siguientes
+    // Filtrar estrictamente: solo mes actual y los 2 meses siguientes (nada anterior)
     const { startDate, endDate } = getSheetsAllowedDateRange();
+    filter.checkOut = { $gt: startDate };
     filter.checkIn = { $lt: endDate };
 
     const reservations = await getReservationsForSheetsSync(filter);

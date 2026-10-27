@@ -125,8 +125,15 @@ function mapReservationPayload(reservation: ReservationLike) {
   };
 }
 
-export function hasGoogleSheetsWebhook() {
-  return Boolean(process.env.GOOGLE_SHEETS_WEBHOOK_URL);
+const DEFAULT_GOOGLE_SHEETS_WEBHOOK_URL =
+  "https://script.google.com/macros/s/AKfycbzZX7r6seA3zHaoIwTOF_3yo38v2-HDgpTh-RyfmrR3q8RXOjcv3IbNvvDnj_9KcTghHQ/exec";
+
+export function getGoogleSheetsWebhookUrl(): string {
+  return (process.env.GOOGLE_SHEETS_WEBHOOK_URL || DEFAULT_GOOGLE_SHEETS_WEBHOOK_URL).trim();
+}
+
+export function hasGoogleSheetsWebhook(): boolean {
+  return Boolean(getGoogleSheetsWebhookUrl());
 }
 
 /**
@@ -144,13 +151,21 @@ export function getSheetsAllowedDateRange(referenceDate: Date = new Date()) {
 }
 
 export function isReservationEligibleForSheets(
-  reservation: { checkIn: Date | string },
+  reservation: { checkIn: Date | string; checkOut?: Date | string },
   referenceDate: Date = new Date()
 ): boolean {
-  const { endDate } = getSheetsAllowedDateRange(referenceDate);
+  const { startDate, endDate } = getSheetsAllowedDateRange(referenceDate);
   const checkIn = reservation.checkIn instanceof Date ? reservation.checkIn : new Date(reservation.checkIn);
   if (Number.isNaN(checkIn.getTime())) return false;
-  return checkIn < endDate;
+
+  if (reservation.checkOut) {
+    const checkOut = reservation.checkOut instanceof Date ? reservation.checkOut : new Date(reservation.checkOut);
+    if (!Number.isNaN(checkOut.getTime())) {
+      return checkOut > startDate && checkIn < endDate;
+    }
+  }
+
+  return checkIn >= startDate && checkIn < endDate;
 }
 
 export function isReservationInSheetsWindow(
@@ -172,7 +187,7 @@ export async function syncReservationToGoogleSheets(
   reservation: ReservationLike,
   action: SyncAction = "upsert"
 ) {
-  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const webhookUrl = getGoogleSheetsWebhookUrl();
 
   if (!webhookUrl) {
     return { skipped: true, reason: "GOOGLE_SHEETS_WEBHOOK_URL is not configured" };
@@ -199,7 +214,7 @@ export async function syncReservationsBatchToGoogleSheets(
   reservations: ReservationLike[],
   action: SyncAction = "bulk_upsert"
 ) {
-  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const webhookUrl = getGoogleSheetsWebhookUrl();
 
   if (!webhookUrl) {
     return { skipped: true, reason: "GOOGLE_SHEETS_WEBHOOK_URL is not configured" };
