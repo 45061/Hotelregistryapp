@@ -48,6 +48,8 @@ const travelerSchema = new Schema<ITraveler>({
     }
 }, { timestamps: true });
 
+travelerSchema.index({ date: -1 });
+
 const TravelerRecord: Model<ITraveler> = models.TravelerRecord || mongoose.model<ITraveler>('TravelerRecord', travelerSchema);
 
 export default TravelerRecord;

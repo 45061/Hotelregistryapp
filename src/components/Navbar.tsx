@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 import AtamsaLogo from "@/components/AtamsaLogo";
+import { setOpenBoxesAction } from "@/store/actions/boxAction";
 
 interface UserPropData {
   authorized: boolean;
@@ -19,8 +21,10 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch();
+  const openBoxes = useSelector((state: any) => state.boxReducer.openBoxes || []);
+  const openBoxesLastFetched = useSelector((state: any) => state.boxReducer.openBoxesLastFetched);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [openBoxes, setOpenBoxes] = useState<any[]>([]);
   const [isBoxModalOpen, setIsBoxModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -43,27 +47,34 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
       const res = await fetch("/api/boxes");
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        setOpenBoxes(json.data.filter((b: any) => Boolean(b.activeBox)));
+        dispatch(setOpenBoxesAction(json.data.filter((b: any) => Boolean(b.activeBox))));
       }
     } catch (err) {
       console.error("Error fetching open boxes in navbar:", err);
     }
   };
 
+  const OPEN_BOXES_TTL = 20 * 60 * 1000; // 20 minutos de validez para revisión de cajas abiertas
+
   useEffect(() => {
     if (canAccessBoxAndCalendar) {
-      fetchOpenBoxes();
-      const interval = setInterval(fetchOpenBoxes, 30000);
-      const handleFocus = () => fetchOpenBoxes();
+      const isStale = !openBoxesLastFetched || Date.now() - openBoxesLastFetched > OPEN_BOXES_TTL;
+      if (isStale) {
+        fetchOpenBoxes();
+      }
+      const interval = setInterval(fetchOpenBoxes, OPEN_BOXES_TTL);
+      const handleFocus = () => {
+        if (!openBoxesLastFetched || Date.now() - openBoxesLastFetched > OPEN_BOXES_TTL) {
+          fetchOpenBoxes();
+        }
+      };
       window.addEventListener("focus", handleFocus);
       return () => {
         clearInterval(interval);
         window.removeEventListener("focus", handleFocus);
       };
-    } else {
-      setOpenBoxes([]);
     }
-  }, [canAccessBoxAndCalendar, pathname]);
+  }, [canAccessBoxAndCalendar, openBoxesLastFetched]);
 
   const handleGoToBox = () => {
     if (openBoxes.length === 1) {
@@ -223,6 +234,16 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
                     onClick={closeDropdown}
                   >
                     <span>Gestión de Cajas</span>
+                  </Link>
+                )}
+
+                {canAccessBoxAndCalendar && (
+                  <Link
+                    href="/tabla-control"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-verde-principal/10 hover:text-verde-principal font-medium transition-colors"
+                    onClick={closeDropdown}
+                  >
+                    <span>Caja Recepción (Control)</span>
                   </Link>
                 )}
 

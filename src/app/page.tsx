@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import FormField from "@/components/FormField";
 import AtamsaLogo from "@/components/AtamsaLogo";
@@ -10,6 +11,7 @@ import TravelerRegistrationForm from "@/components/TravelerRegistrationForm";
 import CompanionRegistrationForm from "@/components/CompanionRegistrationForm";
 import TravelerList from "@/components/TravelerList";
 import PendingPaymentsList from "@/components/PendingPaymentsList";
+import { setTravelersAction } from "@/store/actions/travelerAction";
 
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -171,7 +173,15 @@ const headquartersMap: Record<string, string> = {
 };
 
 export default function HomePage() {
-  const [records, setRecords] = useState<TravelerRecord[]>([]);
+  const dispatch = useDispatch();
+  const cachedTravelers = useSelector(
+    (state: any) => state.travelerReducer.records
+  );
+  const travelersLastFetched = useSelector(
+    (state: any) => state.travelerReducer.lastFetched
+  );
+
+  const [records, setRecords] = useState<TravelerRecord[]>(cachedTravelers || []);
   const [form, setForm] =
     useState<Omit<TravelerRecord, "date" | "arrivalTime">>(initialFormState);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -184,6 +194,8 @@ export default function HomePage() {
   const recordsPerPage = 8;
   const [showPending, setShowPending] = useState(false);
   const router = useRouter();
+
+  const TRAVELERS_TTL = 20 * 60 * 1000; // 20 minutos de caché
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -211,11 +223,25 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!loadingUser && user && user.authorized) {
-      fetchRecords();
+      fetchRecords(refreshList > 0);
     }
   }, [loadingUser, user, refreshList]);
 
-  const fetchRecords = async () => {
+  const fetchRecords = async (force = false) => {
+    const isFresh =
+      !force &&
+      cachedTravelers &&
+      cachedTravelers.length > 0 &&
+      travelersLastFetched &&
+      Date.now() - travelersLastFetched < TRAVELERS_TTL;
+
+    if (isFresh) {
+      if (records !== cachedTravelers) {
+        setRecords(cachedTravelers);
+      }
+      return;
+    }
+
     try {
       const res = await fetch("/api/travelers");
       const data = await res.json();
@@ -232,6 +258,7 @@ export default function HomePage() {
           }
         );
         setRecords(sortedRecords);
+        dispatch(setTravelersAction(sortedRecords));
       } else {
         toast.error("Failed to fetch records.");
       }
@@ -502,6 +529,7 @@ export default function HomePage() {
           travelers={records as any}
           onEdit={handleEdit}
           isAdmin={user?.isAdmin}
+          onDeleteSuccess={() => setRefreshList((prev) => prev + 1)}
         />
       </div>
     </div>

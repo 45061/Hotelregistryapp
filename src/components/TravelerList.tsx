@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { invalidateTravelersAction } from "@/store/actions/travelerAction";
 
 interface Traveler {
   _id: string;
@@ -117,17 +119,20 @@ interface TravelerListProps {
   travelers: Traveler[];
   onEdit: (traveler: Traveler) => void;
   isAdmin: boolean;
+  onDeleteSuccess?: () => void;
 }
 
 const TravelerList: React.FC<TravelerListProps> = ({ 
   travelers,
   onEdit,
   isAdmin,
+  onDeleteSuccess,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 8;
 
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const handleDelete = async (id: string) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este registro?")) {
@@ -141,7 +146,12 @@ const TravelerList: React.FC<TravelerListProps> = ({
         const data = await response.json();
         if (data.success) {
           alert("Registro eliminado con éxito.");
-          router.refresh(); // Refresh the page to reflect changes
+          dispatch(invalidateTravelersAction());
+          if (onDeleteSuccess) {
+            onDeleteSuccess();
+          } else {
+            router.refresh(); // Refresh the page to reflect changes
+          }
         } else {
           alert(data.error || "Error al eliminar el registro.");
         }

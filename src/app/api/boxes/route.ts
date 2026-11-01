@@ -31,10 +31,11 @@ export async function GET(req: NextRequest) {
 
     const boxes = await (Box as any)
       .find(filter)
+      .select("-cashReseived -cashWithdrawn")
       .populate("userId", "firstName lastName")
       .populate("userIdOpenBox", "firstName lastName")
-      .populate("cashReseived")
-      .populate("cashWithdrawn");
+      .sort({ activeBox: -1, createdAt: -1 })
+      .lean();
 
     return NextResponse.json({ success: true, data: boxes }, { status: 200 });
   } catch (error: any) {
