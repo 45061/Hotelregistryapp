@@ -17,7 +17,8 @@ export async function GET(req: NextRequest) {
 
     const records = await (TravelerRecord as any)
       .find({ date: { $gte: filterDate } })
-      .populate("user", "firstName lastName");
+      .populate("user", "firstName lastName")
+      .lean();
     return NextResponse.json({ success: true, data: records }, { status: 200 });
   } catch (error: any) {
     console.error("API Error (GET /api/travelers):", error);

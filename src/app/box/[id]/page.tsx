@@ -14,6 +14,10 @@ import {
   showWithdrawCashAction,
 } from "@/store/actions/modalAction";
 import { incrementCharge } from "@/store/actions/dateAction";
+import {
+  setBoxDetailsAction,
+  invalidateBoxAction,
+} from "@/store/actions/boxAction";
 import CashReseived from "@/components/CashReseived";
 import CashWithdrawed from "@/components/CashWithdrawed";
 import AtamsaLogo from "@/components/AtamsaLogo";
@@ -54,13 +58,18 @@ export default function BoxId({ params }: { params: { id: string } }) {
 
   const [user, setUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [dataBox, setDataBox] = useState<any>({});
-  const [dataPayment, setDataPayment] = useState([]);
-  const [dataWithdraw, setDataWithdraw] = useState([]);
+
+  const cachedBoxData = useSelector(
+    (state: any) => state.boxReducer.boxDetails?.[thisIsTheBox]
+  );
+  const [dataBox, setDataBox] = useState<any>(cachedBoxData?.dataBox || {});
+  const [dataPayment, setDataPayment] = useState(cachedBoxData?.dataPayment || []);
+  const [dataWithdraw, setDataWithdraw] = useState(cachedBoxData?.dataWithdraw || []);
 
   const { showAdd, showWitdraw } = useSelector((state: any) => state.modalReducer);
   const { charge } = useSelector((state: any) => state.dateReducer);
   const { existingBalance } = useSelector((state: any) => state.boxReducer);
+  const [lastCharge, setLastCharge] = useState(charge);
 
   const canAccessBox = Boolean(
     user &&
@@ -101,57 +110,74 @@ export default function BoxId({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     if (!loadingUser && canAccessBox) {
-      const fetchBox = async () => {
-        await fetch(`/api/box/boxrefresh`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${thisIsTheBox}`,
-            "Content-Type": "application/json",
-          },
-        })
-          .then((resp) => resp.json())
-          .then((data) => {
-            if (data.box) {
-              setDataBox(data.box);
-            }
-          });
+      const isFresh =
+        cachedBoxData &&
+        charge === lastCharge &&
+        Date.now() - (cachedBoxData.lastFetched || 0) < 20 * 60 * 1000; // 20 minutos de caché
+
+      if (isFresh) {
+        if (dataBox !== cachedBoxData.dataBox) setDataBox(cachedBoxData.dataBox);
+        if (dataPayment !== cachedBoxData.dataPayment) setDataPayment(cachedBoxData.dataPayment || []);
+        if (dataWithdraw !== cachedBoxData.dataWithdraw) setDataWithdraw(cachedBoxData.dataWithdraw || []);
+        return;
+      }
+
+      setLastCharge(charge);
+
+      const fetchAllData = async () => {
+        try {
+          const [boxRes, payRes, withRes] = await Promise.all([
+            fetch(`/api/box/boxrefresh`, {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${thisIsTheBox}`,
+                "Content-Type": "application/json",
+              },
+            }),
+            fetch(`/api/box/payment?boxId=${thisIsTheBox}`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }),
+            fetch(`/api/box/withdraw?boxId=${thisIsTheBox}`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }),
+          ]);
+
+          const [boxData, payData, withData] = await Promise.all([
+            boxRes.json(),
+            payRes.json(),
+            withRes.json(),
+          ]);
+
+          const newBox = boxData.box || {};
+          const newPayments = payData.payment || [];
+          const newWithdraws = withData.withdraw || [];
+
+          setDataBox(newBox);
+          setDataPayment(newPayments);
+          setDataWithdraw(newWithdraws);
+
+          dispatch(
+            setBoxDetailsAction({
+              boxId: thisIsTheBox,
+              dataBox: newBox,
+              dataPayment: newPayments,
+              dataWithdraw: newWithdraws,
+            })
+          );
+        } catch (error) {
+          console.error("Error fetching box details:", error);
+        }
       };
 
-      fetchBox();
-
-      const fetchPayment = async () => {
-        await fetch(`/api/box/payment?boxId=${thisIsTheBox}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((resp) => resp.json())
-          .then((data) => {
-            if (data.payment) {
-              setDataPayment(data.payment);
-            }
-          });
-      };
-      fetchPayment();
-
-      const fetchWithdraw = async () => {
-        await fetch(`/api/box/withdraw?boxId=${thisIsTheBox}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((resp) => resp.json())
-          .then((data) => {
-            if (data.withdraw) {
-              setDataWithdraw(data.withdraw);
-            }
-          });
-      };
-      fetchWithdraw();
+      fetchAllData();
     }
-  }, [charge, loadingUser, canAccessBox, thisIsTheBox, router, dispatch]);
+  }, [charge, loadingUser, canAccessBox, thisIsTheBox, cachedBoxData, lastCharge, dispatch]);
 
   const handleCloseBox = async () => {
     try {
@@ -169,6 +195,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
       });
 
       if (response.ok) {
+        dispatch(invalidateBoxAction(thisIsTheBox));
         router.push("/box");
       } else {
         console.error("Failed to close the box");
