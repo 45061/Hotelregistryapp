@@ -24,8 +24,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
   const dispatch = useDispatch();
   const openBoxes = useSelector((state: any) => state.boxReducer.openBoxes || []);
   const openBoxesLastFetched = useSelector((state: any) => state.boxReducer.openBoxesLastFetched);
+  const { charge } = useSelector((state: any) => state.dateReducer);
   const lastFetchedRef = useRef<number | null>(openBoxesLastFetched);
   lastFetchedRef.current = openBoxesLastFetched;
+  const lastChargeRef = useRef<number>(charge);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isBoxModalOpen, setIsBoxModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -60,8 +62,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
 
   useEffect(() => {
     if (canAccessBoxAndCalendar) {
+      const chargeChanged = lastChargeRef.current !== charge;
+      lastChargeRef.current = charge;
       const isStale = !lastFetchedRef.current || Date.now() - lastFetchedRef.current > OPEN_BOXES_TTL;
-      if (isStale) {
+      if (chargeChanged || isStale) {
         fetchOpenBoxes();
       }
       const interval = setInterval(fetchOpenBoxes, OPEN_BOXES_TTL);
@@ -76,7 +80,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, loading }) => {
         window.removeEventListener("focus", handleFocus);
       };
     }
-  }, [canAccessBoxAndCalendar]);
+  }, [canAccessBoxAndCalendar, charge]);
 
   const handleGoToBox = () => {
     if (openBoxes.length === 1) {
