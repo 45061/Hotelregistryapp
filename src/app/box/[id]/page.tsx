@@ -17,6 +17,7 @@ import { incrementCharge } from "@/store/actions/dateAction";
 import {
   setBoxDetailsAction,
   invalidateBoxAction,
+  setOpenBoxesAction,
 } from "@/store/actions/boxAction";
 import CashReseived from "@/components/CashReseived";
 import CashWithdrawed from "@/components/CashWithdrawed";
@@ -68,7 +69,7 @@ export default function BoxId({ params }: { params: { id: string } }) {
 
   const { showAdd, showWitdraw } = useSelector((state: any) => state.modalReducer);
   const { charge } = useSelector((state: any) => state.dateReducer);
-  const { existingBalance } = useSelector((state: any) => state.boxReducer);
+  const { existingBalance, openBoxes } = useSelector((state: any) => state.boxReducer);
   const [lastCharge, setLastCharge] = useState(charge);
 
   const canAccessBox = Boolean(
@@ -170,6 +171,13 @@ export default function BoxId({ params }: { params: { id: string } }) {
               dataWithdraw: newWithdraws,
             })
           );
+
+          if (newBox?._id && newBox.activeBox) {
+            const alreadyInList = (openBoxes || []).some((b: any) => b._id === newBox._id);
+            if (!alreadyInList) {
+              dispatch(setOpenBoxesAction([...(openBoxes || []), newBox]));
+            }
+          }
         } catch (error) {
           console.error("Error fetching box details:", error);
         }
@@ -196,6 +204,11 @@ export default function BoxId({ params }: { params: { id: string } }) {
 
       if (response.ok) {
         dispatch(invalidateBoxAction(thisIsTheBox));
+        dispatch(
+          setOpenBoxesAction(
+            (openBoxes || []).filter((b: any) => b._id !== thisIsTheBox)
+          )
+        );
         router.push("/box");
       } else {
         console.error("Failed to close the box");
