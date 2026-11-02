@@ -332,7 +332,6 @@ export default function BoxId({ params }: { params: { id: string } }) {
           opened={showAdd}
           onClose={() => {
             dispatch(showAddCashAction());
-            dispatch(incrementCharge());
           }}
           size="md"
           title="Añadir Dinero"
@@ -350,7 +349,6 @@ export default function BoxId({ params }: { params: { id: string } }) {
           opened={showWitdraw}
           onClose={() => {
             dispatch(showWithdrawCashAction());
-            dispatch(incrementCharge());
           }}
           size="md"
           title="Retirar Dinero"
