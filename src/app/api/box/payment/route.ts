@@ -99,9 +99,8 @@ export async function GET(request: NextRequest) {
 
     const payment = await (Payment as any).find(query)
       .populate("userId", "firstName")
-      .populate({
-        path: "boxId",
-      });
+      .populate("boxId", "_id nameBox")
+      .lean();
 
     return NextResponse.json({
       message: "Los datos llegaron",
